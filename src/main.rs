@@ -135,14 +135,14 @@ impl Contender {
                 if index == 1 {
                     "SELL"
                 } else {
-                    "BUY"
+                    "BUY "
                 }
             }
             "Boxspread" => {
                 if index % 2 == 1 {
                     "SELL"
                 } else {
-                    "BUY"
+                    "BUY "
                 }
             }
             _ => "UNKNOWN",
@@ -1084,7 +1084,9 @@ fn get_option() -> String {
 4 for Calendar + Butterfly
 5 for Calendar + Boxspread
 6 for Butterfly + Boxspread
-DEFAULT for Calendar + Butterfly + Boxspread";
+DEFAULT for Calendar + Butterfly + Boxspread
+
+";
             get_user_input(&format!(
                 "{}\nEnter which strategy the bot should use:",
                 prompt
@@ -1102,7 +1104,9 @@ fn get_fill_type() -> String {
 1 for single order, single fill
 2 for single order, multiple fills
 3 for multiple orders, single fill
-DEFAULT for multiple orders, multiple fills";
+DEFAULT for multiple orders, multiple fills
+
+";
             get_user_input(&format!(
                 "{}\nEnter which fill type the bot should use:",
                 prompt
