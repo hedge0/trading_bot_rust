@@ -232,7 +232,13 @@ impl ActiveTick {
             ("apikey", &self.apikey),
         ];
 
-        let response = match self.client.get(auth_url).header("Connection", "keep-alive").query(&params).send() {
+        let response = match self
+            .client
+            .get(auth_url)
+            .header("Connection", "keep-alive")
+            .query(&params)
+            .send()
+        {
             Ok(resp) => resp,
             Err(err) => {
                 eprintln!("Error: {}", err);
@@ -287,7 +293,13 @@ impl ActiveTick {
             ("ignore_empty", "false"),
         ];
 
-        let response = match self.client.get(chain_url).header("Connection", "keep-alive").query(&params).send() {
+        let response = match self
+            .client
+            .get(chain_url)
+            .header("Connection", "keep-alive")
+            .query(&params)
+            .send()
+        {
             Ok(resp) => resp,
             Err(err) => {
                 eprintln!("Error: {}", err);
@@ -382,7 +394,13 @@ impl ActiveTick {
             ("ignore_empty", "false"),
         ];
 
-        let response = match self.client.get(chain_url).header("Connection", "keep-alive").query(&params).send() {
+        let response = match self
+            .client
+            .get(chain_url)
+            .header("Connection", "keep-alive")
+            .query(&params)
+            .send()
+        {
             Ok(resp) => resp,
             Err(err) => {
                 eprintln!("Error: {}", err);
@@ -475,6 +493,11 @@ impl ActiveTick {
                 if strike_exists {
                     let arb_val = current_c.mkt - next_c.mkt;
 
+                    println!("{}", current_date);
+                    println!("{}", &current_date);
+                    println!("{}", date);
+                    println!("{}", next_date);
+
                     if arb_val > 0.15
                         && current_c.bid > 0.25
                         && next_c.bid > 0.25
@@ -483,7 +506,7 @@ impl ActiveTick {
                         && calc_time_difference(date, next_date) == 2
                     {
                         let avg_ask = ((current_c.asz + next_c.asz) / 2.0).round();
-                        let rank_value = calc_rank_value(avg_ask, arb_val, current_date, date);
+                        let rank_value = calc_rank_value(avg_ask, arb_val, &current_date, date);
 
                         contender_contracts.push(Contender {
                             arb_val,
@@ -537,7 +560,7 @@ impl ActiveTick {
                         && calc_time_difference(date, next_date) == 2
                     {
                         let avg_ask = ((current_p.asz + next_p.asz) / 2.0).round();
-                        let rank_value = calc_rank_value(avg_ask, arb_val, current_date, date);
+                        let rank_value = calc_rank_value(avg_ask, arb_val, &current_date, date);
 
                         contender_contracts.push(Contender {
                             arb_val,
@@ -604,7 +627,7 @@ impl ActiveTick {
                     {
                         let avg_ask =
                             ((left_c.asz + right_c.asz + (2.0 * current_c.asz)) / 4.0).round();
-                        let rank_value = calc_rank_value(avg_ask, arb_val, current_date, date);
+                        let rank_value = calc_rank_value(avg_ask, arb_val, &current_date, date);
 
                         contender_contracts.push(Contender {
                             arb_val,
@@ -660,7 +683,7 @@ impl ActiveTick {
                     {
                         let avg_ask =
                             ((left_p.asz + right_p.asz + (2.0 * current_p.asz)) / 4.0).round();
-                        let rank_value = calc_rank_value(avg_ask, arb_val, current_date, date);
+                        let rank_value = calc_rank_value(avg_ask, arb_val, &current_date, date);
 
                         contender_contracts.push(Contender {
                             arb_val,
@@ -739,7 +762,7 @@ impl ActiveTick {
                         let avg_ask = ((current_c.asz + right_c.asz + current_p.asz + right_p.asz)
                             / 4.0)
                             .round();
-                        let rank_value = calc_rank_value(avg_ask, arb_val, current_date, date);
+                        let rank_value = calc_rank_value(avg_ask, arb_val, &current_date, date);
 
                         contender_contracts.push(Contender {
                             arb_val,
