@@ -466,15 +466,8 @@ impl ActiveTick {
         contracts_map: &HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>>,
     ) -> Vec<Contender> {
         let mut contender_contracts = Vec::new();
-        let current_date = SystemTime::now()
-            .duration_since(SystemTime::UNIX_EPOCH)
-            .unwrap()
-            .as_secs()
-            .to_string();
-
         let now = Local::now();
-        let formatted_date = format!("{:02}{:02}{:02}", now.year() % 100, now.month(), now.day());
-        println!("{}", formatted_date);
+        let current_date = format!("{:02}{:02}{:02}", now.year() % 100, now.month(), now.day());
 
         for date_index in 0..(self.dates_slice.len() - 1) {
             let date = &self.dates_slice[date_index];
@@ -496,11 +489,6 @@ impl ActiveTick {
 
                 if strike_exists {
                     let arb_val = current_c.mkt - next_c.mkt;
-
-                    println!("{}", current_date);
-                    println!("{}", &current_date);
-                    println!("{}", date);
-                    println!("{}", next_date);
 
                     if arb_val > 0.15
                         && current_c.bid > 0.25
@@ -601,11 +589,8 @@ impl ActiveTick {
         contracts_map: &HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>>,
     ) -> Vec<Contender> {
         let mut contender_contracts = Vec::new();
-        let current_date = SystemTime::now()
-            .duration_since(SystemTime::UNIX_EPOCH)
-            .unwrap()
-            .as_secs()
-            .to_string();
+        let now = Local::now();
+        let current_date = format!("{:02}{:02}{:02}", now.year() % 100, now.month(), now.day());
 
         for date in &self.dates_slice {
             if self.strike_slice[date]["C"].len() > 2 {
@@ -730,11 +715,8 @@ impl ActiveTick {
         contracts_map: &HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>>,
     ) -> Vec<Contender> {
         let mut contender_contracts = Vec::new();
-        let current_date = SystemTime::now()
-            .duration_since(SystemTime::UNIX_EPOCH)
-            .unwrap()
-            .as_secs()
-            .to_string();
+        let now = Local::now();
+        let current_date = format!("{:02}{:02}{:02}", now.year() % 100, now.month(), now.day());
 
         for date in &self.dates_slice {
             if self.strike_slice[date]["C"].len() > 1 && self.strike_slice[date]["P"].len() > 1 {
