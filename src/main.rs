@@ -884,7 +884,7 @@ fn main() {
                         );
 
                         for i in 0..contender.contracts.len() {
-                            println!("{}", format_contender_description(&contender, 1, i));
+                            println!("{}", format_contender_description(&contender, num_fills, i));
                         }
                     }
                 }
