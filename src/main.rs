@@ -232,7 +232,7 @@ impl ActiveTick {
             ("apikey", &self.apikey),
         ];
 
-        let response = match self.client.get(auth_url).query(&params).send() {
+        let response = match self.client.get(auth_url).header("Connection", "keep-alive").query(&params).send() {
             Ok(resp) => resp,
             Err(err) => {
                 eprintln!("Error: {}", err);
@@ -287,7 +287,7 @@ impl ActiveTick {
             ("ignore_empty", "false"),
         ];
 
-        let response = match self.client.get(chain_url).query(&params).send() {
+        let response = match self.client.get(chain_url).header("Connection", "keep-alive").query(&params).send() {
             Ok(resp) => resp,
             Err(err) => {
                 eprintln!("Error: {}", err);
@@ -382,7 +382,7 @@ impl ActiveTick {
             ("ignore_empty", "false"),
         ];
 
-        let response = match self.client.get(chain_url).query(&params).send() {
+        let response = match self.client.get(chain_url).header("Connection", "keep-alive").query(&params).send() {
             Ok(resp) => resp,
             Err(err) => {
                 eprintln!("Error: {}", err);
