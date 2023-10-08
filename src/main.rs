@@ -483,7 +483,7 @@ impl ActiveTick {
                         && calc_time_difference(date, next_date) == 2
                     {
                         let avg_ask = ((current_c.asz + next_c.asz) / 2.0).round();
-                        let rank_value = calc_rank_value(avg_ask, arb_val, &current_date, date);
+                        let rank_value = calc_rank_value(avg_ask, arb_val, current_date, date);
 
                         contender_contracts.push(Contender {
                             arb_val,
@@ -537,7 +537,7 @@ impl ActiveTick {
                         && calc_time_difference(date, next_date) == 2
                     {
                         let avg_ask = ((current_p.asz + next_p.asz) / 2.0).round();
-                        let rank_value = calc_rank_value(avg_ask, arb_val, &current_date, date);
+                        let rank_value = calc_rank_value(avg_ask, arb_val, current_date, date);
 
                         contender_contracts.push(Contender {
                             arb_val,
@@ -604,7 +604,7 @@ impl ActiveTick {
                     {
                         let avg_ask =
                             ((left_c.asz + right_c.asz + (2.0 * current_c.asz)) / 4.0).round();
-                        let rank_value = calc_rank_value(avg_ask, arb_val, &current_date, date);
+                        let rank_value = calc_rank_value(avg_ask, arb_val, current_date, date);
 
                         contender_contracts.push(Contender {
                             arb_val,
@@ -660,7 +660,7 @@ impl ActiveTick {
                     {
                         let avg_ask =
                             ((left_p.asz + right_p.asz + (2.0 * current_p.asz)) / 4.0).round();
-                        let rank_value = calc_rank_value(avg_ask, arb_val, &current_date, date);
+                        let rank_value = calc_rank_value(avg_ask, arb_val, current_date, date);
 
                         contender_contracts.push(Contender {
                             arb_val,
@@ -739,7 +739,7 @@ impl ActiveTick {
                         let avg_ask = ((current_c.asz + right_c.asz + current_p.asz + right_p.asz)
                             / 4.0)
                             .round();
-                        let rank_value = calc_rank_value(avg_ask, arb_val, &current_date, date);
+                        let rank_value = calc_rank_value(avg_ask, arb_val, current_date, date);
 
                         contender_contracts.push(Contender {
                             arb_val,
@@ -981,7 +981,6 @@ fn get_optimal_num_orders(portfolio_value: f64) -> (i32, i32) {
 
 // Function that returns the number of days between 2 dates.
 fn calc_time_difference(current_date: &str, date: &str) -> i64 {
-    println!("{}", current_date);
     let current_time = NaiveDate::parse_from_str(current_date, "%y%m%d").unwrap();
     let future_time = NaiveDate::parse_from_str(date, "%y%m%d").unwrap();
 
