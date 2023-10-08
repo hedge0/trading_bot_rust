@@ -909,7 +909,7 @@ fn main() {
             // Sleep to avoid throttling resources
             println!("");
             println!("Sleeping for 1 minute...");
-            sleep(Duration::from_secs(60));
+            sleep(Duration::from_secs(5));
             println!("Awake after 1 minute!");
             println!("");
 
