@@ -1,4 +1,5 @@
 use chrono::{Datelike, Timelike, Utc};
+use dotenv::dotenv;
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -126,14 +127,31 @@ struct ActiveTick {
     strike_slice: HashMap<String, HashMap<String, Vec<f64>>>,
 }
 
+// ********************************************
+// ********************************************
+// ********************************************
+// ********************************************
+// ********************************************
+// ********************************************
+// ********************************************
+// ********************************************
+// ********************************************
+// ********************************************
+
 fn main() {
-    // Call the is_us_stock_market_open() function from the helpers module
-    if is_us_stock_market_open() {
-        println!("The US stock market is open.");
-    } else {
-        println!("The US stock market is closed.");
-    }
+    println!("{}", get_discount_value());
 }
+
+// ********************************************
+// ********************************************
+// ********************************************
+// ********************************************
+// ********************************************
+// ********************************************
+// ********************************************
+// ********************************************
+// ********************************************
+// ********************************************
 
 fn is_us_stock_market_open() -> bool {
     let market_open_hour = 9;
@@ -189,17 +207,6 @@ fn get_optimal_num_orders(portfolio_value: f64) -> (i32, i32) {
     }
 }
 
-// Function that uses dotenv to load/read the .env file and return the value of the key.
-fn get_dotenv_variable(key: &str) -> String {
-    match env::var(key) {
-        Ok(value) => value,
-        Err(_) => {
-            println!("Error: Environment variable not found");
-            std::process::exit(1);
-        }
-    }
-}
-
 // Function that returns the number of days between 2 dates.
 fn calc_time_difference(current_date: &str, date: &str) -> f64 {
     let current_time = chrono::NaiveDate::parse_from_str(current_date, "%y%m%d").unwrap();
@@ -228,6 +235,7 @@ fn string_exists_in_slice(target: &str, slice: &[String]) -> bool {
     slice.contains(&target.to_string())
 }
 
+// Function that gets input and retruns result
 fn get_user_input(prompt: &str) -> String {
     let mut input = String::new();
     println!("{}", prompt);
@@ -237,43 +245,45 @@ fn get_user_input(prompt: &str) -> String {
     input.trim().to_string()
 }
 
+// Function that uses dotenv to load/read the .env file and return the value of the key.
+fn get_dotenv_variable(key: &str) -> Result<String, Box<dyn Error>> {
+    dotenv()?; // Load the .env file
+    match env::var(key) {
+        Ok(value) => Ok(value),
+        Err(e) => Err(Box::new(e)),
+    }
+}
+
 // Function that gets username
 fn get_username() -> String {
-    let username = get_dotenv_variable("USER_NAME");
-    if !username.is_empty() {
-        username
-    } else {
-        get_user_input("Enter username:")
+    match get_dotenv_variable("USER_NAME") {
+        Ok(val) => val,
+        Err(_) => get_user_input("Enter username:"),
     }
 }
 
 // Function that gets password
 fn get_password() -> String {
-    let password = get_dotenv_variable("PASSWORD");
-    if !password.is_empty() {
-        password
-    } else {
-        get_user_input("Enter password:")
+    match get_dotenv_variable("PASSWORD") {
+        Ok(val) => val,
+        Err(_) => get_user_input("Enter password:"),
     }
 }
 
 // Function that gets API key
 fn get_api_key() -> String {
-    let api_key = get_dotenv_variable("API_KEY");
-    if !api_key.is_empty() {
-        api_key
-    } else {
-        get_user_input("Enter API key:")
+    match get_dotenv_variable("API_KEY") {
+        Ok(val) => val,
+        Err(_) => get_user_input("Enter API key:"),
     }
 }
 
 // Function that gets option for contracts to look for
 fn get_option() -> String {
-    let option = get_dotenv_variable("OPTION");
-    if !option.is_empty() {
-        option
-    } else {
-        let prompt = "\
+    match get_dotenv_variable("OPTION") {
+        Ok(val) => val,
+        Err(_) => {
+            let prompt = "\
 1 for Calendar
 2 for Butterfly
 3 for Boxspread
@@ -281,47 +291,47 @@ fn get_option() -> String {
 5 for Calendar + Boxspread
 6 for Butterfly + Boxspread
 DEFAULT for Calendar + Butterfly + Boxspread";
-        get_user_input(&format!(
-            "Enter which strategy the bot should use:\n{}",
-            prompt
-        ))
+            get_user_input(&format!(
+                "{}\nEnter which strategy the bot should use:",
+                prompt
+            ))
+        }
     }
 }
 
 // Function that gets fill type
 fn get_fill_type() -> String {
-    let fill = get_dotenv_variable("FILL_TYPE");
-    if !fill.is_empty() {
-        fill
-    } else {
-        let prompt = "\
+    match get_dotenv_variable("FILL_TYPE") {
+        Ok(val) => val,
+        Err(_) => {
+            let prompt = "\
 1 for single order, single fill
 2 for single order, multiple fills
 3 for multiple orders, single fill
 DEFAULT for multiple orders, multiple fills";
-        get_user_input(&format!(
-            "Enter which fill type the bot should use:\n{}",
-            prompt
-        ))
+            get_user_input(&format!(
+                "{}\nEnter which fill type the bot should use:",
+                prompt
+            ))
+        }
     }
 }
 
 // Function that gets mode
 fn get_mode() -> bool {
-    let mode = get_dotenv_variable("TEST_MODE");
-    if !mode.is_empty() {
-        mode.to_lowercase() != "yes" && mode.to_lowercase() != "y"
-    } else {
-        let input = get_user_input("Would you like to run the bot in testing mode? (Y / N):");
-        input.to_lowercase() != "yes" && input.to_lowercase() != "y"
+    match get_dotenv_variable("TEST_MODE") {
+        Ok(val) => val.to_lowercase() != "yes" && val.to_lowercase() != "y",
+        Err(_) => {
+            let input = get_user_input("Would you like to run the bot in testing mode? (Y / N):");
+            input.to_lowercase() != "yes" && input.to_lowercase() != "y"
+        }
     }
 }
 
 // Function that gets discount value
 fn get_discount_value() -> f64 {
-    let discount_value = get_dotenv_variable("DISCOUNT_VALUE");
-    if !discount_value.is_empty() {
-        match discount_value.parse::<f64>() {
+    match get_dotenv_variable("DISCOUNT_VALUE") {
+        Ok(val) => match val.parse::<f64>() {
             Ok(val) => {
                 if val >= 0.5 && val <= 1.0 {
                     val
@@ -334,21 +344,22 @@ fn get_discount_value() -> f64 {
                 println!("Not a valid Discount Value, setting to 1.0");
                 1.0
             }
-        }
-    } else {
-        let input = get_user_input("Enter a Discount Value between 0.0 and 1.0:");
-        match input.parse::<f64>() {
-            Ok(val) => {
-                if val >= 0.5 && val <= 1.0 {
-                    val
-                } else {
+        },
+        Err(_) => {
+            let input = get_user_input("Enter a Discount Value between 0.0 and 1.0:");
+            match input.parse::<f64>() {
+                Ok(val) => {
+                    if val >= 0.5 && val <= 1.0 {
+                        val
+                    } else {
+                        println!("Not a valid Discount Value, setting to 1.0");
+                        1.0
+                    }
+                }
+                Err(_) => {
                     println!("Not a valid Discount Value, setting to 1.0");
                     1.0
                 }
-            }
-            Err(_) => {
-                println!("Not a valid Discount Value, setting to 1.0");
-                1.0
             }
         }
     }
