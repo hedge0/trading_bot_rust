@@ -850,7 +850,7 @@ fn main() {
         get_username(),
         get_password(),
         get_api_key(),
-        std::time::Duration::from_secs(5 * 24 * 60 * 60),
+        std::time::Duration::from_secs(1 * 24 * 60 * 60),
     );
     let _ = active_tick.init();
     //let mut ibkr = IBKR::new();
