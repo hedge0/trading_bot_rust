@@ -1,4 +1,4 @@
-use chrono::{Datelike, NaiveDate, Timelike, Utc, Weekday};
+use chrono::{Datelike, Local, NaiveDate, Timelike, Utc, Weekday};
 use dotenv::dotenv;
 use ordered_float::OrderedFloat;
 use reqwest::blocking::Client;
@@ -471,6 +471,10 @@ impl ActiveTick {
             .unwrap()
             .as_secs()
             .to_string();
+
+        let now = Local::now();
+        let formatted_date = format!("{:02}{:02}{:02}", now.year() % 100, now.month(), now.day());
+        println!("{}", formatted_date);
 
         for date_index in 0..(self.dates_slice.len() - 1) {
             let date = &self.dates_slice[date_index];
