@@ -9,7 +9,7 @@ use std::error::Error;
 use std::io;
 use std::process::exit;
 use std::thread::sleep;
-use std::time::{Duration, Instant, SystemTime};
+use std::time::{Duration, Instant};
 
 #[derive(Serialize, Deserialize)]
 struct AccountResponse {
