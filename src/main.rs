@@ -981,7 +981,7 @@ fn get_optimal_num_orders(portfolio_value: f64) -> (i32, i32) {
 
 // Function that returns the number of days between 2 dates.
 fn calc_time_difference(current_date: &str, date: &str) -> i64 {
-    println!(current_date);
+    println!("{}", current_date);
     let current_time = NaiveDate::parse_from_str(current_date, "%y%m%d").unwrap();
     let future_time = NaiveDate::parse_from_str(date, "%y%m%d").unwrap();
 
