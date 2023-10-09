@@ -7,7 +7,6 @@ use std::collections::HashMap;
 use std::env;
 use std::error::Error;
 use std::io;
-use std::process::exit;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 
@@ -319,12 +318,12 @@ impl ActiveTick {
     }
 
     // Function that returns datesSlice
-    fn get_dates_slice(&self) -> &Option<Vec<String>> {
+    fn _get_dates_slice(&self) -> &Option<Vec<String>> {
         &self.dates_slice
     }
 
     // Function that returns strikeSlice
-    fn get_strike_slice(&self) -> &Option<HashMap<String, HashMap<String, Vec<f64>>>> {
+    fn _get_strike_slice(&self) -> &Option<HashMap<String, HashMap<String, Vec<f64>>>> {
         &self.strike_slice
     }
 
@@ -388,7 +387,12 @@ impl ActiveTick {
 
         let params = [
             ("sessionid", session_id),
-            // ... the rest of your parameters
+            ("key", "SPXW_S U"),
+            ("chaintype", "equity_options"),
+            ("columns", "b,a,asz"),
+            ("begin_maturity_time", &formatted_time),
+            ("end_maturity_time", &formatted_future_time),
+            ("ignore_empty", "false"),
         ];
 
         let response = self
@@ -978,7 +982,7 @@ fn calc_rank_value(avg_ask: f64, arb_val: f64, current_date: &str, date: &str) -
 }
 
 // Function that converts dates to the correct format.
-fn convert_date(input_date: &str) -> String {
+fn _convert_date(input_date: &str) -> String {
     let parsed_time = NaiveDate::parse_from_str(input_date, "%y%m%d").unwrap();
     let month_abbreviation = parsed_time.format("%b").to_string().to_uppercase();
     let year_abbreviation = parsed_time.format("%y").to_string();
@@ -987,7 +991,7 @@ fn convert_date(input_date: &str) -> String {
 }
 
 // Function that checks if a string exists in a Vec of strings.
-fn string_exists_in_slice(target: &str, slice: &[String]) -> bool {
+fn _string_exists_in_slice(target: &str, slice: &[String]) -> bool {
     slice.contains(&target.to_string())
 }
 
@@ -1100,7 +1104,7 @@ fn get_mode() -> bool {
 }
 
 // Function that gets discount value
-fn get_discount_value() -> f64 {
+fn _get_discount_value() -> f64 {
     match get_dotenv_variable("DISCOUNT_VALUE") {
         Ok(val) => match val.parse::<f64>() {
             Ok(val) => {
