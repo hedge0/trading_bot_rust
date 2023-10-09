@@ -816,7 +816,6 @@ fn main() {
     let mut num_orders: i32;
     let mut num_fills: i32;
     let mut port_val: f64;
-    let mut contender_contracts: Vec<Contender>;
 
     let mut active_tick = ActiveTick::new();
     let _ = active_tick.init(&get_username(), &get_password(), &get_api_key(), 5);
