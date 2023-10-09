@@ -17,13 +17,13 @@ fn main() {
     let mut num_fills: i32;
     let mut port_val: f64;
 
-    let mut active_tick = ActiveTick::new();
+    let mut active_tick: ActiveTick = ActiveTick::new();
     let _ = active_tick.init(&get_username(), &get_password(), &get_api_key(), 5);
     //let mut ibkr = IBKR::new();
 
-    let option = get_option();
-    let fill = get_fill_type();
-    let mode = get_mode();
+    let option: String = get_option();
+    let fill: String = get_fill_type();
+    let mode: bool = get_mode();
 
     if mode {
         //ibkr.init(get_discount_value(), go_dot_env_variable("DOMAIN"), go_dot_env_variable("PORT"), active_tick.get_dates_slice(), active_tick.get_strike_slice());
@@ -42,7 +42,7 @@ fn main() {
             (num_orders, num_fills) = calc_final_num_orders(&fill, port_val);
 
             if num_orders > 0 {
-                let start_time = Instant::now();
+                let start_time: Instant = Instant::now();
 
                 match active_tick.get_contender_contracts(&option, num_orders) {
                     Ok(contender_contracts) => {
@@ -84,7 +84,7 @@ fn main() {
                 }
 
                 // Record the current time after running the program
-                let elapsed_time = start_time.elapsed();
+                let elapsed_time: Duration = start_time.elapsed();
                 println!("Total time taken: {:?}", elapsed_time);
             } else {
                 println!("Not enough equity in account to make a trade !!!");
