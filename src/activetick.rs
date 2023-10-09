@@ -1,6 +1,6 @@
 use chrono::{Datelike, Local};
 use ordered_float::OrderedFloat;
-use reqwest::blocking::Client;
+use reqwest::blocking::{Client, Response};
 use std::collections::HashMap;
 use std::error::Error;
 use std::process::exit;
@@ -69,7 +69,7 @@ impl ActiveTick {
         self.apikey = Some(apikey.to_string());
         self.num_days = Some(std::time::Duration::from_secs(num_days * 24 * 60 * 60));
         self.client = Some(Client::new());
-        let session_id = self.get_session_id()?;
+        let session_id: String = self.get_session_id()?;
         let (dates, strikes) = self.get_spx_dates_and_strikes(&session_id)?;
         self.dates_slice = dates;
         self.strike_slice = strikes;
@@ -88,9 +88,9 @@ impl ActiveTick {
 
     // Function that checks if the user is authorized to use the Activetick API, and returns a sessionID if ok
     fn get_session_id(&self) -> Result<String, Box<dyn Error>> {
-        let auth_url = "https://api.activetick.com/authorize.json";
+        let auth_url: &str = "https://api.activetick.com/authorize.json";
 
-        let params = [
+        let params: [(&str, &String); 3] = [
             (
                 "username",
                 self.username.as_ref().ok_or("Missing username")?,
@@ -102,7 +102,7 @@ impl ActiveTick {
             ("apikey", self.apikey.as_ref().ok_or("Missing apikey")?),
         ];
 
-        let response = self
+        let response: Response = self
             .client
             .as_ref()
             .ok_or("Client is not initialized")?
@@ -139,13 +139,13 @@ impl ActiveTick {
         ),
         Box<dyn Error>,
     > {
-        let chain_url = "https://api.activetick.com/chain.json";
-        let current_time = chrono::Local::now();
-        let future_time = current_time + self.num_days.unwrap_or_default(); // handle None case
-        let formatted_time = current_time.format("%Y-%m-%dT%H:%M:%S").to_string();
-        let formatted_future_time = future_time.format("%Y-%m-%dT%H:%M:%S").to_string();
+        let chain_url: &str = "https://api.activetick.com/chain.json";
+        let current_time: chrono::DateTime<Local> = chrono::Local::now();
+        let future_time: chrono::DateTime<Local> = current_time + self.num_days.unwrap_or_default(); // handle None case
+        let formatted_time: String = current_time.format("%Y-%m-%dT%H:%M:%S").to_string();
+        let formatted_future_time: String = future_time.format("%Y-%m-%dT%H:%M:%S").to_string();
 
-        let params = [
+        let params: [(&str, &str); 7] = [
             ("sessionid", session_id),
             ("key", "SPXW_S U"),
             ("chaintype", "equity_options"),
@@ -155,7 +155,7 @@ impl ActiveTick {
             ("ignore_empty", "false"),
         ];
 
-        let response = self
+        let response: Response = self
             .client
             .as_ref()
             .ok_or("Client is not initialized")?
@@ -172,16 +172,16 @@ impl ActiveTick {
         if chain_results.rows.is_empty() {
             return Err("Error: SPX rows data is empty".into());
         }
-        let mut dates_slice = Vec::new();
-        let mut strike_slice = HashMap::new();
+        let mut dates_slice: Vec<String> = Vec::new();
+        let mut strike_slice: HashMap<String, HashMap<String, Vec<f64>>> = HashMap::new();
 
         for row in chain_results.rows.iter() {
             if row.st == "ok" {
                 let parts: Vec<&str> = row.s.split('_').collect();
-                let code = parts[1];
-                let exp_date = &code[0..6];
-                let type_opt = &code[6..7];
-                let strike_str = &code[7..(code.len() - 3)];
+                let code: &str = parts[1];
+                let exp_date: &str = &code[0..6];
+                let type_opt: &str = &code[6..7];
+                let strike_str: &str = &code[7..(code.len() - 3)];
                 let strike: f64 = strike_str.parse().unwrap();
 
                 if !strike_slice.contains_key(exp_date) {
@@ -226,13 +226,14 @@ impl ActiveTick {
         session_id: &str,
     ) -> Result<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>>, Box<dyn Error>>
     {
-        let chain_url = "https://api.activetick.com/chain.json";
-        let current_time = chrono::Local::now();
-        let future_time = current_time + self.num_days.ok_or("num_days is not set")?;
-        let formatted_time = current_time.format("%Y-%m-%dT%H:%M:%S").to_string();
-        let formatted_future_time = future_time.format("%Y-%m-%dT%H:%M:%S").to_string();
+        let chain_url: &str = "https://api.activetick.com/chain.json";
+        let current_time: chrono::DateTime<Local> = chrono::Local::now();
+        let future_time: chrono::DateTime<Local> =
+            current_time + self.num_days.ok_or("num_days is not set")?;
+        let formatted_time: String = current_time.format("%Y-%m-%dT%H:%M:%S").to_string();
+        let formatted_future_time: String = future_time.format("%Y-%m-%dT%H:%M:%S").to_string();
 
-        let params = [
+        let params: [(&str, &str); 7] = [
             ("sessionid", session_id),
             ("key", "SPXW_S U"),
             ("chaintype", "equity_options"),
@@ -242,7 +243,7 @@ impl ActiveTick {
             ("ignore_empty", "false"),
         ];
 
-        let response = self
+        let response: Response = self
             .client
             .as_ref()
             .ok_or("Client is not initialized")?
@@ -256,25 +257,27 @@ impl ActiveTick {
         }
 
         let chain_results: ChainResponse = response.json()?;
-        let mut contracts_map = HashMap::new();
+        let mut contracts_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>> =
+            HashMap::new();
 
         for row in chain_results.rows.iter() {
             if row.st == "ok" {
                 let parts: Vec<&str> = row.s.split('_').collect();
-                let code = parts[1];
-                let exp_date = &code[0..6];
-                let type_opt = &code[6..7];
-                let strike_str = &code[7..(code.len() - 3)];
-                let strike = OrderedFloat(strike_str.parse::<f64>().unwrap());
+                let code: &str = parts[1];
+                let exp_date: &str = &code[0..6];
+                let type_opt: &str = &code[6..7];
+                let strike_str: &str = &code[7..(code.len() - 3)];
+                let strike: OrderedFloat<f64> = OrderedFloat(strike_str.parse::<f64>().unwrap());
                 let bid: f64 = row.data[0].v.parse().unwrap();
                 let ask: f64 = row.data[1].v.parse().unwrap();
                 let asz_val: f64 = row.data[2].v.parse().unwrap();
-                let mkt_val = ((bid + ask) / 2.0).round();
+                let mkt_val: f64 = ((bid + ask) / 2.0 * 100.0).round() / 100.0;
 
                 contracts_map
                     .entry(exp_date.to_string())
                     .or_insert_with(|| {
-                        let mut m = HashMap::new();
+                        let mut m: HashMap<String, HashMap<OrderedFloat<f64>, Opt>> =
+                            HashMap::new();
                         m.insert("C".to_string(), HashMap::new());
                         m.insert("P".to_string(), HashMap::new());
                         m
@@ -300,23 +303,25 @@ impl ActiveTick {
         &self,
         contracts_map: &HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>>,
     ) -> Result<Vec<Contender>, Box<dyn Error>> {
-        let mut contender_contracts = Vec::new();
-        let now = Local::now();
-        let current_date = format!("{:02}{:02}{:02}", now.year() % 100, now.month(), now.day());
+        let mut contender_contracts: Vec<Contender> = Vec::new();
+        let now: chrono::DateTime<Local> = Local::now();
+        let current_date: String =
+            format!("{:02}{:02}{:02}", now.year() % 100, now.month(), now.day());
 
-        let dates_slice = self.dates_slice.as_ref().ok_or("dates_slice is not set")?;
-        let strike_slice = self
+        let dates_slice: &Vec<String> =
+            self.dates_slice.as_ref().ok_or("dates_slice is not set")?;
+        let strike_slice: &HashMap<String, HashMap<String, Vec<f64>>> = self
             .strike_slice
             .as_ref()
             .ok_or("strike_slice is not set")?;
 
         for date_index in 0..(dates_slice.len() - 1) {
-            let date = &dates_slice[date_index];
+            let date: &String = &dates_slice[date_index];
 
             if let Some(strike_data) = strike_slice.get(date) {
                 for (type_contract, strikes) in strike_data.iter() {
                     for strike in strikes {
-                        let current_opt = contracts_map
+                        let current_opt: &Opt = contracts_map
                             .get(date)
                             .and_then(|m| m.get(type_contract))
                             .and_then(|m| m.get(strike.into()))
@@ -325,14 +330,14 @@ impl ActiveTick {
                                 type_contract, date
                             ))?;
 
-                        let next_date = &dates_slice[date_index + 1];
-                        let next_opt = contracts_map
+                        let next_date: &String = &dates_slice[date_index + 1];
+                        let next_opt: Option<&Opt> = contracts_map
                             .get(next_date)
                             .and_then(|m| m.get(type_contract))
                             .and_then(|m| m.get(strike.into()));
 
                         if let Some(next_opt) = next_opt {
-                            let arb_val = current_opt.mkt - next_opt.mkt;
+                            let arb_val: f64 = current_opt.mkt - next_opt.mkt;
 
                             if arb_val > 0.15
                                 && current_opt.bid > 0.25
@@ -341,8 +346,8 @@ impl ActiveTick {
                                 && next_opt.asz > 0.0
                                 && calc_time_difference(date, next_date) == 2
                             {
-                                let avg_ask = ((current_opt.asz + next_opt.asz) / 2.0).round();
-                                let rank_value =
+                                let avg_ask: f64 = ((current_opt.asz + next_opt.asz) / 2.0).round();
+                                let rank_value: f64 =
                                     calc_rank_value(avg_ask, arb_val, &current_date, date);
 
                                 contender_contracts.push(Contender {
@@ -381,12 +386,14 @@ impl ActiveTick {
         &self,
         contracts_map: &HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>>,
     ) -> Result<Vec<Contender>, Box<dyn Error>> {
-        let mut contender_contracts = Vec::new();
-        let now = Local::now();
-        let current_date = format!("{:02}{:02}{:02}", now.year() % 100, now.month(), now.day());
+        let mut contender_contracts: Vec<Contender> = Vec::new();
+        let now: chrono::DateTime<Local> = Local::now();
+        let current_date: String =
+            format!("{:02}{:02}{:02}", now.year() % 100, now.month(), now.day());
 
-        let dates_slice = self.dates_slice.as_ref().ok_or("dates_slice is not set")?;
-        let strike_slice = self
+        let dates_slice: &Vec<String> =
+            self.dates_slice.as_ref().ok_or("dates_slice is not set")?;
+        let strike_slice: &HashMap<String, HashMap<String, Vec<f64>>> = self
             .strike_slice
             .as_ref()
             .ok_or("strike_slice is not set")?;
@@ -397,28 +404,28 @@ impl ActiveTick {
                     if let Some(contract_strikes) = strike_data.get(contract_type) {
                         if contract_strikes.len() > 2 {
                             for i in 1..(contract_strikes.len() - 1) {
-                                let current_strike = &contract_strikes[i];
-                                let current_contract = contracts_map
+                                let current_strike: &f64 = &contract_strikes[i];
+                                let current_contract: &Opt = contracts_map
                                     .get(date)
                                     .and_then(|ct| ct.get(contract_type))
                                     .and_then(|ct| ct.get(current_strike.into()))
                                     .ok_or("Error accessing current contract")?;
 
-                                let left_strike = &contract_strikes[i - 1];
-                                let left_contract = contracts_map
+                                let left_strike: &f64 = &contract_strikes[i - 1];
+                                let left_contract: &Opt = contracts_map
                                     .get(date)
                                     .and_then(|ct| ct.get(contract_type))
                                     .and_then(|ct| ct.get(left_strike.into()))
                                     .ok_or("Error accessing left contract")?;
 
-                                let right_strike = &contract_strikes[i + 1];
-                                let right_contract = contracts_map
+                                let right_strike: &f64 = &contract_strikes[i + 1];
+                                let right_contract: &Opt = contracts_map
                                     .get(date)
                                     .and_then(|ct| ct.get(contract_type))
                                     .and_then(|ct| ct.get(right_strike.into()))
                                     .ok_or("Error accessing right contract")?;
 
-                                let arb_val = (2.0 * current_contract.mkt)
+                                let arb_val: f64 = (2.0 * current_contract.mkt)
                                     - (left_contract.mkt + right_contract.mkt);
 
                                 if arb_val > 0.15
@@ -431,12 +438,12 @@ impl ActiveTick {
                                     && (current_strike - left_strike).round() == 5.0
                                     && (right_strike - current_strike).round() == 5.0
                                 {
-                                    let avg_ask = ((left_contract.asz
+                                    let avg_ask: f64 = ((left_contract.asz
                                         + right_contract.asz
                                         + (2.0 * current_contract.asz))
                                         / 4.0)
                                         .round();
-                                    let rank_value =
+                                    let rank_value: f64 =
                                         calc_rank_value(avg_ask, arb_val, &current_date, date);
 
                                     contender_contracts.push(Contender {
@@ -482,12 +489,14 @@ impl ActiveTick {
         &self,
         contracts_map: &HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>>,
     ) -> Result<Vec<Contender>, Box<dyn Error>> {
-        let mut contender_contracts = Vec::new();
-        let now = Local::now();
-        let current_date = format!("{:02}{:02}{:02}", now.year() % 100, now.month(), now.day());
+        let mut contender_contracts: Vec<Contender> = Vec::new();
+        let now: chrono::DateTime<Local> = Local::now();
+        let current_date: String =
+            format!("{:02}{:02}{:02}", now.year() % 100, now.month(), now.day());
 
-        let dates_slice = self.dates_slice.as_ref().ok_or("dates_slice is not set")?;
-        let strike_slice = self
+        let dates_slice: &Vec<String> =
+            self.dates_slice.as_ref().ok_or("dates_slice is not set")?;
+        let strike_slice: &HashMap<String, HashMap<String, Vec<f64>>> = self
             .strike_slice
             .as_ref()
             .ok_or("strike_slice is not set")?;
@@ -497,35 +506,35 @@ impl ActiveTick {
                 if let (Some(cs), Some(ps)) = (strike_data.get("C"), strike_data.get("P")) {
                     if cs.len() > 1 && ps.len() > 1 {
                         for i in 0..(cs.len() - 1) {
-                            let current_strike_c = &cs[i];
-                            let current_c = contracts_map
+                            let current_strike_c: &f64 = &cs[i];
+                            let current_c: &Opt = contracts_map
                                 .get(date)
                                 .and_then(|c| c.get("C"))
                                 .and_then(|c| c.get(current_strike_c.into()))
                                 .ok_or("Error accessing current_c")?;
 
-                            let current_strike_p = &ps[i];
-                            let current_p = contracts_map
+                            let current_strike_p: &f64 = &ps[i];
+                            let current_p: &Opt = contracts_map
                                 .get(date)
                                 .and_then(|p| p.get("P"))
                                 .and_then(|p| p.get(current_strike_p.into()))
                                 .ok_or("Error accessing current_p")?;
 
-                            let right_strike_c = &cs[i + 1];
-                            let right_c = contracts_map
+                            let right_strike_c: &f64 = &cs[i + 1];
+                            let right_c: &Opt = contracts_map
                                 .get(date)
                                 .and_then(|c| c.get("C"))
                                 .and_then(|c| c.get(right_strike_c.into()))
                                 .ok_or("Error accessing right_c")?;
 
-                            let right_strike_p = &ps[i + 1];
-                            let right_p = contracts_map
+                            let right_strike_p: &f64 = &ps[i + 1];
+                            let right_p: &Opt = contracts_map
                                 .get(date)
                                 .and_then(|p| p.get("P"))
                                 .and_then(|p| p.get(right_strike_p.into()))
                                 .ok_or("Error accessing right_p")?;
 
-                            let arb_val =
+                            let arb_val: f64 =
                                 (current_c.mkt + right_p.mkt) - (current_p.mkt + right_c.mkt) - 5.0;
 
                             if arb_val > 0.15
@@ -540,11 +549,11 @@ impl ActiveTick {
                                 && (right_strike_c - current_strike_c).round() == 5.0
                                 && (right_strike_p - current_strike_p).round() == 5.0
                             {
-                                let avg_ask =
+                                let avg_ask: f64 =
                                     ((current_c.asz + right_c.asz + current_p.asz + right_p.asz)
                                         / 4.0)
                                         .round();
-                                let rank_value =
+                                let rank_value: f64 =
                                     calc_rank_value(avg_ask, arb_val, &current_date, date);
 
                                 contender_contracts.push(Contender {
@@ -596,9 +605,10 @@ impl ActiveTick {
         option: &str,
         num_orders: i32,
     ) -> Result<Vec<Contender>, Box<dyn Error>> {
-        let session_id = self.get_session_id()?;
-        let contracts_map = self.get_spx_data(&session_id)?;
-        let mut contender_contracts_total = Vec::new();
+        let session_id: String = self.get_session_id()?;
+        let contracts_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>> =
+            self.get_spx_data(&session_id)?;
+        let mut contender_contracts_total: Vec<Contender> = Vec::new();
 
         match OptionType::from_str(option).ok_or("Invalid option type")? {
             OptionType::Calendar => {
