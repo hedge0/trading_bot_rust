@@ -766,7 +766,6 @@ impl ActiveTick {
         let contracts_map = self.get_spx_data(&session_id)?;
         let mut contender_contracts_total = Vec::new();
 
-        let start_time = Instant::now();
         match OptionType::from_str(option).ok_or("Invalid option type")? {
             OptionType::Calendar => {
                 contender_contracts_total.extend(self.get_calendar_contenders(&contracts_map)?);
@@ -795,8 +794,6 @@ impl ActiveTick {
                 contender_contracts_total.extend(self.get_boxspread_contenders(&contracts_map)?);
             }
         }
-        let elapsed_time = start_time.elapsed();
-        println!("Total time taken for arb search: {:?}", elapsed_time);
 
         contender_contracts_total.sort_by(|a, b| b.rank_value.partial_cmp(&a.rank_value).unwrap());
 
@@ -826,7 +823,7 @@ fn main() {
     let mut port_val: f64;
 
     let mut active_tick = ActiveTick::new();
-    let _ = active_tick.init(&get_username(), &get_password(), &get_api_key(), 1);
+    let _ = active_tick.init(&get_username(), &get_password(), &get_api_key(), 5);
     //let mut ibkr = IBKR::new();
 
     let option = get_option();
