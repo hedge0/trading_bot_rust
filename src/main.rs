@@ -1,12 +1,11 @@
-use chrono::{Datelike, Local, NaiveDate, Timelike, Utc, Weekday};
-use dotenv::dotenv;
+mod helpers;
+
+use chrono::{Datelike, Local};
 use ordered_float::OrderedFloat;
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::env;
 use std::error::Error;
-use std::io;
 use std::process::exit;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
@@ -506,11 +505,11 @@ impl ActiveTick {
                                 && next_opt.bid > 0.25
                                 && current_opt.asz > 0.0
                                 && next_opt.asz > 0.0
-                                && calc_time_difference(date, next_date) == 2
+                                && helpers::calc_time_difference(date, next_date) == 2
                             {
                                 let avg_ask = ((current_opt.asz + next_opt.asz) / 2.0).round();
                                 let rank_value =
-                                    calc_rank_value(avg_ask, arb_val, &current_date, date);
+                                    helpers::calc_rank_value(avg_ask, arb_val, &current_date, date);
 
                                 contender_contracts.push(Contender {
                                     arb_val,
@@ -603,8 +602,12 @@ impl ActiveTick {
                                         + (2.0 * current_contract.asz))
                                         / 4.0)
                                         .round();
-                                    let rank_value =
-                                        calc_rank_value(avg_ask, arb_val, &current_date, date);
+                                    let rank_value = helpers::calc_rank_value(
+                                        avg_ask,
+                                        arb_val,
+                                        &current_date,
+                                        date,
+                                    );
 
                                     contender_contracts.push(Contender {
                                         arb_val,
@@ -712,7 +715,7 @@ impl ActiveTick {
                                         / 4.0)
                                         .round();
                                 let rank_value =
-                                    calc_rank_value(avg_ask, arb_val, &current_date, date);
+                                    helpers::calc_rank_value(avg_ask, arb_val, &current_date, date);
 
                                 contender_contracts.push(Contender {
                                     arb_val,
@@ -824,12 +827,17 @@ fn main() {
     let mut port_val: f64;
 
     let mut active_tick = ActiveTick::new();
-    let _ = active_tick.init(&get_username(), &get_password(), &get_api_key(), 5);
+    let _ = active_tick.init(
+        &helpers::get_username(),
+        &helpers::get_password(),
+        &helpers::get_api_key(),
+        5,
+    );
     //let mut ibkr = IBKR::new();
 
-    let option = get_option();
-    let fill = get_fill_type();
-    let mode = get_mode();
+    let option = helpers::get_option();
+    let fill = helpers::get_fill_type();
+    let mode = helpers::get_mode();
 
     if mode {
         //ibkr.init(get_discount_value(), go_dot_env_variable("DOMAIN"), go_dot_env_variable("PORT"), active_tick.get_dates_slice(), active_tick.get_strike_slice());
@@ -837,7 +845,7 @@ fn main() {
     }
 
     loop {
-        if is_us_stock_market_open() && is_weekday() || !mode {
+        if helpers::is_us_stock_market_open() && helpers::is_weekday() || !mode {
             if mode {
                 //port_val = ibkr.get_portfolio_value();
                 port_val = 100000.0
@@ -845,7 +853,7 @@ fn main() {
                 port_val = 100000.0;
             }
 
-            (num_orders, num_fills) = calc_final_num_orders(&fill, port_val);
+            (num_orders, num_fills) = helpers::calc_final_num_orders(&fill, port_val);
 
             if num_orders > 0 {
                 let start_time = Instant::now();
@@ -868,7 +876,16 @@ fn main() {
                                 for i in 0..contender.contracts.len() {
                                     println!(
                                         "{}",
-                                        format_contender_description(&contender, num_fills, i)
+                                        format!(
+                                            "\tLeg {}: {} {} * {:.2}{} {} @ {:.2}",
+                                            i + 1,
+                                            contender.action(i),
+                                            contender.multiplier(num_fills, i),
+                                            contender.contracts[i].strike,
+                                            &contender.contracts[i].type_contract,
+                                            &contender.contracts[i].date,
+                                            contender.contracts[i].mkt_price
+                                        )
                                     );
                                 }
                             }
@@ -901,244 +918,6 @@ fn main() {
         } else {
             println!("Market is closed");
             break;
-        }
-    }
-}
-
-// ********************************************
-// ********************************************
-// ********************************************
-// ********************************************
-// ********************************************
-// ********************************************
-// ********************************************
-// ********************************************
-// ********************************************
-// ********************************************
-
-fn is_us_stock_market_open() -> bool {
-    let market_open_hour = 9;
-    let market_open_minute = 30;
-    let market_close_hour = 15;
-    let market_close_minute = 55;
-
-    let current_time = Utc::now();
-    println!("{:?}", current_time);
-
-    let current_hour = current_time.hour();
-    let current_minute = current_time.minute();
-
-    if current_hour > market_open_hour && current_hour < market_close_hour {
-        return true;
-    } else if current_hour == market_open_hour && current_minute >= market_open_minute {
-        return true;
-    } else if current_hour == market_close_hour && current_minute <= market_close_minute {
-        return true;
-    }
-
-    // The market is closed.
-    false
-}
-
-// Function that checks if the current day is a weekday.
-fn is_weekday() -> bool {
-    let today = Utc::now().weekday();
-    today != Weekday::Sat && today != Weekday::Sun
-}
-
-// Function that calcs the number of orders and fills for every fill type.
-fn calc_final_num_orders(fill: &str, port_val: f64) -> (i32, i32) {
-    if port_val / 600.0 < 1.0 {
-        return (0, 0);
-    }
-
-    match fill {
-        "1" => (1, 1),
-        "2" => (1, (port_val / 600.0).floor() as i32),
-        "3" => ((port_val / 600.0).floor() as i32, 1),
-        _ => get_optimal_num_orders(port_val),
-    }
-}
-
-// Function that gets the ideal number of orders and fills.
-fn get_optimal_num_orders(portfolio_value: f64) -> (i32, i32) {
-    let num = (portfolio_value / 600.0).sqrt() as i32;
-    if num > 9 {
-        ((portfolio_value / 600.0 / 9.0).floor() as i32, 9)
-    } else {
-        (num, num)
-    }
-}
-
-// Function that returns the number of days between 2 dates.
-fn calc_time_difference(current_date: &str, date: &str) -> i64 {
-    let current_time = NaiveDate::parse_from_str(current_date, "%y%m%d").unwrap();
-    let future_time = NaiveDate::parse_from_str(date, "%y%m%d").unwrap();
-
-    (((current_time - future_time).num_hours() as f64 / 24.0 * -1.0) + 1.0) as i64
-}
-
-// Function that returns the rank value for a contract.
-fn calc_rank_value(avg_ask: f64, arb_val: f64, current_date: &str, date: &str) -> f64 {
-    let difference = calc_time_difference(current_date, date);
-    (avg_ask * arb_val) / (difference as f64)
-}
-
-// Function that converts dates to the correct format.
-fn _convert_date(input_date: &str) -> String {
-    let parsed_time = NaiveDate::parse_from_str(input_date, "%y%m%d").unwrap();
-    let month_abbreviation = parsed_time.format("%b").to_string().to_uppercase();
-    let year_abbreviation = parsed_time.format("%y").to_string();
-
-    format!("{}{}", month_abbreviation, year_abbreviation)
-}
-
-// Function that checks if a string exists in a Vec of strings.
-fn _string_exists_in_slice(target: &str, slice: &[String]) -> bool {
-    slice.contains(&target.to_string())
-}
-
-fn format_contender_description(contender: &Contender, num_fills: i32, index: usize) -> String {
-    format!(
-        "\tLeg {}: {} {} * {:.2}{} {} @ {:.2}",
-        index + 1,
-        contender.action(index),
-        contender.multiplier(num_fills, index),
-        contender.contracts[index].strike,
-        &contender.contracts[index].type_contract,
-        &contender.contracts[index].date,
-        contender.contracts[index].mkt_price
-    )
-}
-
-// Function that gets input and retruns result
-fn get_user_input(prompt: &str) -> String {
-    let mut input = String::new();
-    println!("{}", prompt);
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Failed to read line");
-    input.trim().to_string()
-}
-
-// Function that uses dotenv to load/read the .env file and return the value of the key.
-fn get_dotenv_variable(key: &str) -> Result<String, Box<dyn Error>> {
-    dotenv()?; // Load the .env file
-    match env::var(key) {
-        Ok(value) => Ok(value),
-        Err(e) => Err(Box::new(e)),
-    }
-}
-
-// Function that gets username
-fn get_username() -> String {
-    match get_dotenv_variable("USER_NAME") {
-        Ok(val) => val,
-        Err(_) => get_user_input("Enter username:"),
-    }
-}
-
-// Function that gets password
-fn get_password() -> String {
-    match get_dotenv_variable("PASSWORD") {
-        Ok(val) => val,
-        Err(_) => get_user_input("Enter password:"),
-    }
-}
-
-// Function that gets API key
-fn get_api_key() -> String {
-    match get_dotenv_variable("API_KEY") {
-        Ok(val) => val,
-        Err(_) => get_user_input("Enter API key:"),
-    }
-}
-
-// Function that gets option for contracts to look for
-fn get_option() -> String {
-    match get_dotenv_variable("OPTION") {
-        Ok(val) => val,
-        Err(_) => {
-            let prompt = "\
-1 for Calendar
-2 for Butterfly
-3 for Boxspread
-4 for Calendar + Butterfly
-5 for Calendar + Boxspread
-6 for Butterfly + Boxspread
-DEFAULT for Calendar + Butterfly + Boxspread
-";
-            get_user_input(&format!(
-                "{}\nEnter which strategy the bot should use:",
-                prompt
-            ))
-        }
-    }
-}
-
-// Function that gets fill type
-fn get_fill_type() -> String {
-    match get_dotenv_variable("FILL_TYPE") {
-        Ok(val) => val,
-        Err(_) => {
-            let prompt = "\
-1 for single order, single fill
-2 for single order, multiple fills
-3 for multiple orders, single fill
-DEFAULT for multiple orders, multiple fills
-";
-            get_user_input(&format!(
-                "{}\nEnter which fill type the bot should use:",
-                prompt
-            ))
-        }
-    }
-}
-
-// Function that gets mode
-fn get_mode() -> bool {
-    match get_dotenv_variable("TEST_MODE") {
-        Ok(val) => val.to_lowercase() != "yes" && val.to_lowercase() != "y",
-        Err(_) => {
-            let input = get_user_input("Would you like to run the bot in testing mode? (Y / N):");
-            input.to_lowercase() != "yes" && input.to_lowercase() != "y"
-        }
-    }
-}
-
-// Function that gets discount value
-fn _get_discount_value() -> f64 {
-    match get_dotenv_variable("DISCOUNT_VALUE") {
-        Ok(val) => match val.parse::<f64>() {
-            Ok(val) => {
-                if val >= 0.5 && val <= 1.0 {
-                    val
-                } else {
-                    println!("Not a valid Discount Value, setting to 1.0");
-                    1.0
-                }
-            }
-            Err(_) => {
-                println!("Not a valid Discount Value, setting to 1.0");
-                1.0
-            }
-        },
-        Err(_) => {
-            let input = get_user_input("Enter a Discount Value between 0.0 and 1.0:");
-            match input.parse::<f64>() {
-                Ok(val) => {
-                    if val >= 0.5 && val <= 1.0 {
-                        val
-                    } else {
-                        println!("Not a valid Discount Value, setting to 1.0");
-                        1.0
-                    }
-                }
-                Err(_) => {
-                    println!("Not a valid Discount Value, setting to 1.0");
-                    1.0
-                }
-            }
         }
     }
 }
