@@ -243,81 +243,6 @@ impl ActiveTick {
         Ok(())
     }
 
-    // Function that sends a GET request for SPX data, and then parses the response
-    fn get_spx_data(
-        &self,
-        session_id: &str,
-    ) -> Result<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>>, Box<dyn Error>>
-    {
-        let chain_url = "https://api.activetick.com/chain.json";
-        let current_time = chrono::Local::now();
-        let future_time = current_time + self.num_days.ok_or("num_days is not set")?;
-        let formatted_time = current_time.format("%Y-%m-%dT%H:%M:%S").to_string();
-        let formatted_future_time = future_time.format("%Y-%m-%dT%H:%M:%S").to_string();
-
-        let params = [
-            ("sessionid", session_id),
-            ("key", "SPXW_S U"),
-            ("chaintype", "equity_options"),
-            ("columns", "b,a,asz"),
-            ("begin_maturity_time", &formatted_time),
-            ("end_maturity_time", &formatted_future_time),
-            ("ignore_empty", "false"),
-        ];
-
-        let response = self
-            .client
-            .as_ref()
-            .ok_or("Client is not initialized")?
-            .get(chain_url)
-            .header("Connection", "keep-alive")
-            .query(&params)
-            .send()?;
-
-        if !response.status().is_success() {
-            return Err(format!("Error: {}", response.status()).into());
-        }
-
-        let chain_results: ChainResponse = response.json()?;
-        let mut contracts_map = HashMap::new();
-
-        for row in chain_results.rows.iter() {
-            if row.st == "ok" {
-                let parts: Vec<&str> = row.s.split('_').collect();
-                let code = parts[1];
-                let exp_date = &code[0..6];
-                let type_opt = &code[6..7];
-                let strike_str = &code[7..(code.len() - 3)];
-                let strike = OrderedFloat(strike_str.parse::<f64>().unwrap());
-                let bid: f64 = row.data[0].v.parse().unwrap();
-                let ask: f64 = row.data[1].v.parse().unwrap();
-                let asz_val: f64 = row.data[2].v.parse().unwrap();
-                let mkt_val = ((bid + ask) / 2.0).round();
-
-                contracts_map
-                    .entry(exp_date.to_string())
-                    .or_insert_with(|| {
-                        let mut m = HashMap::new();
-                        m.insert("C".to_string(), HashMap::new());
-                        m.insert("P".to_string(), HashMap::new());
-                        m
-                    })
-                    .entry(type_opt.to_string())
-                    .or_insert(HashMap::new())
-                    .insert(
-                        strike,
-                        Opt {
-                            asz: asz_val,
-                            mkt: mkt_val,
-                            bid: bid,
-                        },
-                    );
-            }
-        }
-
-        Ok(contracts_map)
-    }
-
     // Function that returns datesSlice
     fn _get_dates_slice(&self) -> &Option<Vec<String>> {
         &self.dates_slice
@@ -363,7 +288,8 @@ impl ActiveTick {
                 return Ok(session_id);
             }
         } else {
-            return Err("Error: User Unauthorized".into());
+            eprintln!("Error: User Unauthorized");
+            exit(1);
         }
 
         Err("Failed to get session ID".into())
@@ -459,6 +385,81 @@ impl ActiveTick {
         }
 
         Ok((Some(dates_slice), Some(strike_slice)))
+    }
+
+    // Function that sends a GET request for SPX data, and then parses the response
+    fn get_spx_data(
+        &self,
+        session_id: &str,
+    ) -> Result<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>>, Box<dyn Error>>
+    {
+        let chain_url = "https://api.activetick.com/chain.json";
+        let current_time = chrono::Local::now();
+        let future_time = current_time + self.num_days.ok_or("num_days is not set")?;
+        let formatted_time = current_time.format("%Y-%m-%dT%H:%M:%S").to_string();
+        let formatted_future_time = future_time.format("%Y-%m-%dT%H:%M:%S").to_string();
+
+        let params = [
+            ("sessionid", session_id),
+            ("key", "SPXW_S U"),
+            ("chaintype", "equity_options"),
+            ("columns", "b,a,asz"),
+            ("begin_maturity_time", &formatted_time),
+            ("end_maturity_time", &formatted_future_time),
+            ("ignore_empty", "false"),
+        ];
+
+        let response = self
+            .client
+            .as_ref()
+            .ok_or("Client is not initialized")?
+            .get(chain_url)
+            .header("Connection", "keep-alive")
+            .query(&params)
+            .send()?;
+
+        if !response.status().is_success() {
+            return Err(format!("Error: {}", response.status()).into());
+        }
+
+        let chain_results: ChainResponse = response.json()?;
+        let mut contracts_map = HashMap::new();
+
+        for row in chain_results.rows.iter() {
+            if row.st == "ok" {
+                let parts: Vec<&str> = row.s.split('_').collect();
+                let code = parts[1];
+                let exp_date = &code[0..6];
+                let type_opt = &code[6..7];
+                let strike_str = &code[7..(code.len() - 3)];
+                let strike = OrderedFloat(strike_str.parse::<f64>().unwrap());
+                let bid: f64 = row.data[0].v.parse().unwrap();
+                let ask: f64 = row.data[1].v.parse().unwrap();
+                let asz_val: f64 = row.data[2].v.parse().unwrap();
+                let mkt_val = ((bid + ask) / 2.0).round();
+
+                contracts_map
+                    .entry(exp_date.to_string())
+                    .or_insert_with(|| {
+                        let mut m = HashMap::new();
+                        m.insert("C".to_string(), HashMap::new());
+                        m.insert("P".to_string(), HashMap::new());
+                        m
+                    })
+                    .entry(type_opt.to_string())
+                    .or_insert(HashMap::new())
+                    .insert(
+                        strike,
+                        Opt {
+                            asz: asz_val,
+                            mkt: mkt_val,
+                            bid: bid,
+                        },
+                    );
+            }
+        }
+
+        Ok(contracts_map)
     }
 
     // Function that returns a slice of the top calendar arbs
@@ -875,7 +876,7 @@ fn main() {
                     }
                     Err(error) => {
                         eprintln!("Error retrieving contender contracts: {}", error);
-                        exit(1)
+                        exit(1);
                     }
                 }
 
