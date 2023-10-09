@@ -7,6 +7,7 @@ use std::collections::HashMap;
 use std::env;
 use std::error::Error;
 use std::io;
+use std::process::exit;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 
@@ -874,6 +875,7 @@ fn main() {
                     }
                     Err(error) => {
                         eprintln!("Error retrieving contender contracts: {}", error);
+                        exit(1)
                     }
                 }
 
