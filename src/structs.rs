@@ -117,7 +117,7 @@ impl Contender {
                 if index == 0 {
                     "SELL"
                 } else {
-                    "UNKNOWN"
+                    "BUY"
                 }
             }
             "Butterfly" => {

@@ -67,7 +67,7 @@ fn main() {
                                             i + 1,
                                             contender.action(i),
                                             contender.multiplier(num_fills, i),
-                                            contender.contracts[i].strike,
+                                            contender.contracts[i].strike as i64,
                                             &contender.contracts[i].type_contract,
                                             &contender.contracts[i].date,
                                             contender.contracts[i].mkt_price
