@@ -65,8 +65,15 @@ impl IBKR {
                 exit(1)
             }
         }
-        //self.conids_map = Some(self.get_conids_map(&dates_slice, &strike_slice, &self.spx_id));
-        Ok(())
+        match self.get_conids_map(&dates_slice, &strike_slice) {
+            Ok(conids_map) => Ok({
+                self.conids_map = Some(conids_map);
+            }),
+            Err(e) => {
+                eprintln!("Failed to get SPX ID: {}", e);
+                exit(1)
+            }
+        }
     }
 
     // Function that sends a GET request for portfolio ID
@@ -141,7 +148,6 @@ impl IBKR {
         &self,
         dates_slice: &[String],
         strike_slice: &HashMap<String, HashMap<String, Vec<f64>>>,
-        spx_id: &str,
     ) -> Result<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>, Box<dyn Error>>
     {
         let mut conids_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>> =
@@ -161,7 +167,10 @@ impl IBKR {
                             .unwrap_or_else(Vec::new);
                         (
                             opt_type.to_string(),
-                            strikes.into_iter().map(|s| (s, String::new())).collect(),
+                            strikes
+                                .into_iter()
+                                .map(|s| (OrderedFloat(s), String::new()))
+                                .collect(),
                         )
                     })
                     .collect(),
@@ -180,7 +189,7 @@ impl IBKR {
                 "https://{}:{}/v1/api/iserver/secdef/info?conid={}&sectype=OPT&month={}&exchange=SMART&strike=0",
                 self.domain.as_ref().unwrap(),
                 self.port.as_ref().unwrap(),
-                spx_id,
+                self.spx_id.as_ref().unwrap(),
                 month
             );
 
