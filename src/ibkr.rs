@@ -37,6 +37,7 @@ impl IBKR {
         self.discount_value = Some(discount_value);
         self.domain = Some(domain);
         self.port = Some(port);
+        self.client = Some(Client::new());
         match self.get_account_id() {
             Ok(account_id) => {
                 self.account_id = Some(account_id);
