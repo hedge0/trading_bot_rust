@@ -77,12 +77,12 @@ impl ActiveTick {
     }
 
     // Function that returns datesSlice
-    fn _get_dates_slice(&self) -> &Option<Vec<String>> {
+    pub(crate) fn get_dates_slice(&self) -> &Option<Vec<String>> {
         &self.dates_slice
     }
 
     // Function that returns strikeSlice
-    fn _get_strike_slice(&self) -> &Option<HashMap<String, HashMap<String, Vec<f64>>>> {
+    pub(crate) fn get_strike_slice(&self) -> &Option<HashMap<String, HashMap<String, Vec<f64>>>> {
         &self.strike_slice
     }
 
