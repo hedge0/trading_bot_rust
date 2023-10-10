@@ -20,7 +20,6 @@ fn main() {
     let mut num_orders: i32;
     let mut num_fills: i32;
     let mut port_val: f64;
-
     let mut active_tick: ActiveTick = ActiveTick::new();
     let mut ibkr = IBKR::new();
 
@@ -31,14 +30,25 @@ fn main() {
     let mode: bool = get_mode();
 
     if mode {
-        //ibkr.init(
-        //    get_discount_value(),
-        //    get_dotenv_variable("DOMAIN"),
-        //    get_dotenv_variable("PORT"),
-        //    active_tick.get_dates_slice(),
-        //    active_tick.get_strike_slice(),
-        //);
-        println!("Bot is live !!!");
+        match ibkr.init(
+            get_discount_value(),
+            match get_dotenv_variable("DOMAIN") {
+                Ok(val) => val,
+                Err(_) => "".to_string(),
+            },
+            match get_dotenv_variable("PORT") {
+                Ok(val) => val,
+                Err(_) => "".to_string(),
+            },
+            active_tick.get_dates_slice(),
+            active_tick.get_strike_slice(),
+        ) {
+            Ok(_) => println!("Bot is live !!!"),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                exit(1)
+            }
+        }
     }
 
     loop {
