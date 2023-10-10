@@ -25,6 +25,7 @@ pub(crate) struct SecDefInfoResponse {
 
 #[derive(Serialize, Deserialize)]
 pub(crate) struct PortfolioResponse {
+    #[serde(rename = "EquityWithLoanValue")]
     pub(crate) equity_with_loan_value: PortfolioAmount,
 }
 
