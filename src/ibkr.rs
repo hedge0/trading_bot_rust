@@ -67,16 +67,16 @@ impl IBKR {
             .header("Connection", "keep-alive")
             .send()?;
 
-        if response.status().is_success() {
-            let account_result: Vec<AccountResponse> = response.json()?;
-            if let Some(first_account) = account_result.get(0) {
-                Ok(first_account.id.clone())
-            } else {
-                eprintln!("No account found in the response");
-                exit(1);
-            }
-        } else {
+        if !response.status().is_success() {
             eprintln!("Error: {}", response.status());
+            exit(1);
+        }
+
+        let account_result: Vec<AccountResponse> = response.json()?;
+        if let Some(first_account) = account_result.get(0) {
+            return Ok(first_account.id.clone());
+        } else {
+            eprintln!("No account found in the response");
             exit(1);
         }
     }
