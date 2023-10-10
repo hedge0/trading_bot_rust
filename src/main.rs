@@ -54,8 +54,15 @@ fn main() {
     loop {
         if is_us_stock_market_open() && is_weekday() || !mode {
             if mode {
-                //port_val = ibkr.get_portfolio_value();
-                port_val = 100000.0
+                match ibkr.get_portfolio_value() {
+                    Ok(portfolio_val) => {
+                        port_val = portfolio_val;
+                    }
+                    Err(e) => {
+                        eprintln!("Failed to get portfolio value: {}", e);
+                        exit(1)
+                    }
+                }
             } else {
                 port_val = 100000.0;
             }
@@ -115,7 +122,7 @@ fn main() {
             // Sleep to avoid throttling resources
             println!("");
             println!("Sleeping for 30 seconds...");
-            sleep(Duration::from_secs(5));
+            sleep(Duration::from_secs(30));
             println!("Awake after 30 seconds!");
             println!("");
 

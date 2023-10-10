@@ -1,10 +1,10 @@
 use ordered_float::OrderedFloat;
 use reqwest::blocking::{Client, ClientBuilder, Response};
-use std::{collections::HashMap, error::Error, process::exit, thread::sleep, time::Duration};
+use std::{collections::HashMap, error::Error, process::exit};
 
 use crate::{
     helpers::convert_date,
-    structs::{AccountResponse, SecDefInfoResponse, SecDefResponse},
+    structs::{AccountResponse, PortfolioResponse, SecDefInfoResponse, SecDefResponse},
 };
 
 pub(crate) struct IBKR {
@@ -223,10 +223,35 @@ impl IBKR {
                     }
                 }
             }
-
-            sleep(Duration::from_secs(1));
         }
 
         Ok(conids_map)
+    }
+
+    // Function that sends a GET request for portfolio value
+    pub(crate) fn get_portfolio_value(&self) -> Result<f64, Box<dyn Error>> {
+        let search_url = format!(
+            "https://{}:{}/v1/api/portfolio/{}/summary",
+            self.domain.as_ref().unwrap(),
+            self.port.as_ref().unwrap(),
+            self.account_id.as_ref().unwrap()
+        );
+
+        let response: Response = self
+            .client
+            .as_ref()
+            .ok_or("Client is not initialized")?
+            .get(&search_url)
+            .header("Connection", "keep-alive")
+            .header("User-Agent", "trading_bot_rust/1.0")
+            .send()?;
+
+        if !response.status().is_success() {
+            eprintln!("Error: {}\nBody: {:?}", response.status(), response.text()?);
+            exit(1);
+        }
+
+        let search_results: PortfolioResponse = response.json()?;
+        Ok(search_results.equity_with_loan_value.amount)
     }
 }
