@@ -124,7 +124,7 @@ impl ActiveTick {
             .send()?;
 
         if !response.status().is_success() {
-            eprintln!("Error: {}", response.status());
+            eprintln!("Error: {}\nBody: {:?}", response.status(), response.text()?);
             exit(1);
         }
 
@@ -179,7 +179,7 @@ impl ActiveTick {
             .send()?;
 
         if !response.status().is_success() {
-            eprintln!("Error: {}", response.status());
+            eprintln!("Error: {}\nBody: {:?}", response.status(), response.text()?);
             exit(1);
         }
 
@@ -273,7 +273,7 @@ impl ActiveTick {
             .send()?;
 
         if !response.status().is_success() {
-            eprintln!("Error: {}", response.status());
+            eprintln!("Error: {}\nBody: {:?}", response.status(), response.text()?);
             exit(1);
         }
 
