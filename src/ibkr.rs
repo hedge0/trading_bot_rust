@@ -230,7 +230,7 @@ impl IBKR {
 
     // Function that sends a GET request for portfolio value
     pub(crate) fn get_portfolio_value(&self) -> Result<f64, Box<dyn Error>> {
-        let search_url = format!(
+        let search_url: String = format!(
             "https://{}:{}/v1/api/portfolio/{}/summary",
             self.domain.as_ref().unwrap(),
             self.port.as_ref().unwrap(),
