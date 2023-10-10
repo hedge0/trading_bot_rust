@@ -1,7 +1,10 @@
 use reqwest::blocking::{Client, ClientBuilder, Response};
-use std::{collections::HashMap, error::Error, process::exit};
+use std::{collections::HashMap, error::Error, process::exit, thread::sleep, time::Duration};
 
-use crate::structs::AccountResponse;
+use crate::{
+    helpers::convert_date,
+    structs::{AccountResponse, SecDefInfoResponse, SecDefResponse},
+};
 
 pub(crate) struct IBKR {
     discount_value: Option<f64>,
@@ -52,7 +55,15 @@ impl IBKR {
                 exit(1)
             }
         }
-        //self.spx_id = Some(self.get_spx_conid());
+        match self.get_spx_conid() {
+            Ok(spx_id) => {
+                self.spx_id = Some(spx_id);
+            }
+            Err(e) => {
+                eprintln!("Failed to get SPX ID: {}", e);
+                exit(1)
+            }
+        }
         //self.conids_map = Some(self.get_conids_map(&dates_slice, &strike_slice, &self.spx_id));
         Ok(())
     }
@@ -86,5 +97,122 @@ impl IBKR {
             eprintln!("No account found in the response");
             exit(1);
         }
+    }
+
+    // Function that sends a GET request for SPX ID
+    fn get_spx_conid(&self) -> Result<String, Box<dyn Error>> {
+        let search_url: String = format!(
+            "https://{}:{}/v1/api/iserver/secdef/search?symbol=SPX",
+            self.domain.as_ref().unwrap(),
+            self.port.as_ref().unwrap()
+        );
+
+        let response: Response = self
+            .client
+            .as_ref()
+            .ok_or("Client is not initialized")?
+            .get(&search_url)
+            .header("Connection", "keep-alive")
+            .header("User-Agent", "trading_bot_rust/1.0")
+            .send()?;
+
+        if !response.status().is_success() {
+            eprintln!("Error: {}\nBody: {:?}", response.status(), response.text()?);
+            exit(1);
+        }
+
+        let search_results: Vec<SecDefResponse> = response.json()?;
+
+        for result in &search_results {
+            if let Some(conid) = &result.conid {
+                if result.company_name == "S&P 500 Stock Index" && !conid.is_empty() {
+                    return Ok(conid.to_string());
+                }
+            }
+        }
+
+        eprintln!("No SPX conid found in the response");
+        exit(1);
+    }
+
+    // Function that gets a list of conids for all relevant contracts
+    fn get_conids_map(
+        &self,
+        dates_slice: &[String],
+        strike_slice: &HashMap<String, HashMap<String, Vec<f64>>>,
+        spx_id: &str,
+    ) -> Result<HashMap<String, HashMap<String, HashMap<f64, String>>>, Box<dyn Error>> {
+        let mut conids_map: HashMap<String, HashMap<String, HashMap<f64, String>>> = HashMap::new();
+        let mut months_slice: Vec<String> = Vec::new();
+
+        for date in dates_slice {
+            conids_map.insert(
+                date.clone(),
+                ["C", "P"]
+                    .iter()
+                    .map(|&opt_type| {
+                        let strikes = strike_slice
+                            .get(date)
+                            .and_then(|m| m.get(opt_type))
+                            .cloned()
+                            .unwrap_or_else(Vec::new);
+                        (
+                            opt_type.to_string(),
+                            strikes.into_iter().map(|s| (s, String::new())).collect(),
+                        )
+                    })
+                    .collect(),
+            );
+        }
+
+        for date in dates_slice {
+            let formatted_date = convert_date(date); // Assuming you have or will write this function
+            if !months_slice.contains(&formatted_date) {
+                months_slice.push(formatted_date);
+            }
+        }
+
+        for month in months_slice {
+            let search_url = format!(
+                "https://{}:{}/v1/api/iserver/secdef/info?conid={}&sectype=OPT&month={}&exchange=SMART&strike=0",
+                self.domain.as_ref().unwrap(),
+                self.port.as_ref().unwrap(),
+                spx_id,
+                month
+            );
+
+            let response: Response = self
+                .client
+                .as_ref()
+                .ok_or("Client is not initialized")?
+                .get(&search_url)
+                .header("Connection", "keep-alive")
+                .header("User-Agent", "trading_bot_rust/1.0")
+                .send()?;
+
+            if !response.status().is_success() {
+                eprintln!("Error: {}\nBody: {:?}", response.status(), response.text()?);
+                exit(1);
+            }
+
+            let search_results: Vec<SecDefInfoResponse> = response.json()?;
+
+            for contract in &search_results {
+                if contract.trading_class == "SPXW" {
+                    let date: &str = &contract.maturity_date[2..];
+                    if let Some(date_map) = conids_map.get_mut(date) {
+                        if let Some(opt_type_map) = date_map.get_mut(&contract.right) {
+                            if let Some(conid_place) = opt_type_map.get_mut(&contract.strike) {
+                                *conid_place = contract.conid.to_string();
+                            }
+                        }
+                    }
+                }
+            }
+
+            sleep(Duration::from_secs(1));
+        }
+
+        Ok(conids_map)
     }
 }

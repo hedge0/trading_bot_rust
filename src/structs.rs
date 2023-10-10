@@ -7,14 +7,17 @@ pub(crate) struct AccountResponse {
 
 #[derive(Serialize, Deserialize)]
 pub(crate) struct SecDefResponse {
+    #[serde(rename = "companyName")]
     pub(crate) company_name: String,
-    pub(crate) con_id: Option<String>,
+    pub(crate) conid: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
 pub(crate) struct SecDefInfoResponse {
-    pub(crate) con_id: f64,
+    pub(crate) conid: f64,
+    #[serde(rename = "tradingClass")]
     pub(crate) trading_class: String,
+    #[serde(rename = "maturityDate")]
     pub(crate) maturity_date: String,
     pub(crate) right: String,
     pub(crate) strike: f64,
