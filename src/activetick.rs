@@ -77,13 +77,25 @@ impl ActiveTick {
     }
 
     // Function that returns datesSlice
-    pub(crate) fn get_dates_slice(&self) -> &Option<Vec<String>> {
-        &self.dates_slice
+    pub(crate) fn get_dates_slice(&self) -> Vec<String> {
+        match &self.dates_slice {
+            Some(dates) => dates.clone(),
+            None => {
+                println!("Error: dates_slice is None.");
+                exit(1);
+            }
+        }
     }
 
     // Function that returns strikeSlice
-    pub(crate) fn get_strike_slice(&self) -> &Option<HashMap<String, HashMap<String, Vec<f64>>>> {
-        &self.strike_slice
+    pub(crate) fn get_strike_slice(&self) -> HashMap<String, HashMap<String, Vec<f64>>> {
+        match &self.strike_slice {
+            Some(strikes) => strikes.clone(),
+            None => {
+                println!("Error: strike_slice is None.");
+                exit(1);
+            }
+        }
     }
 
     // Function that checks if the user is authorized to use the Activetick API, and returns a sessionID if ok
