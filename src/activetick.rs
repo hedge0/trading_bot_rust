@@ -124,7 +124,8 @@ impl ActiveTick {
             .send()?;
 
         if !response.status().is_success() {
-            return Err(format!("Error: {}", response.status()).into());
+            eprintln!("Error: {}", response.status());
+            exit(1);
         }
 
         let auth_results: AuthResponse = response.json()?;
@@ -137,7 +138,8 @@ impl ActiveTick {
             exit(1);
         }
 
-        Err("Failed to get session ID".into())
+        eprintln!("Error: Failed to get session ID");
+        exit(1);
     }
 
     // Function that sends a GET request for SPX data, and then gets dates and strikes
