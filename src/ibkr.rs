@@ -160,7 +160,7 @@ impl IBKR {
                 ["C", "P"]
                     .iter()
                     .map(|&opt_type| {
-                        let strikes = strike_slice
+                        let strikes: Vec<f64> = strike_slice
                             .get(date)
                             .and_then(|m| m.get(opt_type))
                             .cloned()
@@ -178,14 +178,14 @@ impl IBKR {
         }
 
         for date in dates_slice {
-            let formatted_date = convert_date(date);
+            let formatted_date: String = convert_date(date);
             if !months_slice.contains(&formatted_date) {
                 months_slice.push(formatted_date);
             }
         }
 
         for month in months_slice {
-            let search_url = format!(
+            let search_url: String = format!(
                 "https://{}:{}/v1/api/iserver/secdef/info?conid={}&sectype=OPT&month={}&exchange=SMART&strike=0",
                 self.domain.as_ref().unwrap(),
                 self.port.as_ref().unwrap(),
