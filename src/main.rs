@@ -18,7 +18,7 @@ fn main() {
     let mut port_val: f64;
 
     let mut active_tick: ActiveTick = ActiveTick::new();
-    let _ = active_tick.init(&get_username(), &get_password(), &get_api_key(), 5);
+    let _ = active_tick.init(&get_username(), &get_password(), &get_api_key(), 4);
     //let mut ibkr = IBKR::new();
 
     let option: String = get_option();
