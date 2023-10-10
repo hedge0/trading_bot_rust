@@ -21,7 +21,7 @@ fn main() {
     let mut num_fills: i32;
     let mut port_val: f64;
     let mut active_tick: ActiveTick = ActiveTick::new();
-    let mut ibkr = IBKR::new();
+    let mut ibkr: IBKR = IBKR::new();
 
     let _ = active_tick.init(&get_username(), &get_password(), &get_api_key(), 4);
 

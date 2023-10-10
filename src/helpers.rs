@@ -73,7 +73,7 @@ pub(crate) fn calc_rank_value(avg_ask: f64, arb_val: f64, current_date: &str, da
 }
 
 // Function that converts dates to the correct format.
-fn _convert_date(input_date: &str) -> String {
+pub(crate) fn convert_date(input_date: &str) -> String {
     let parsed_time: NaiveDate = NaiveDate::parse_from_str(input_date, "%y%m%d").unwrap();
     let month_abbreviation: String = parsed_time.format("%b").to_string().to_uppercase();
     let year_abbreviation: String = parsed_time.format("%y").to_string();
