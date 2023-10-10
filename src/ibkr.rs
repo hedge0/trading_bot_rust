@@ -1,3 +1,4 @@
+use ordered_float::OrderedFloat;
 use reqwest::blocking::{Client, ClientBuilder, Response};
 use std::{collections::HashMap, error::Error, process::exit, thread::sleep, time::Duration};
 
@@ -13,7 +14,7 @@ pub(crate) struct IBKR {
     client: Option<Client>,
     account_id: Option<String>,
     spx_id: Option<String>,
-    conids_map: Option<HashMap<String, HashMap<String, HashMap<f64, String>>>>,
+    conids_map: Option<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>>,
 }
 
 impl IBKR {
@@ -141,8 +142,10 @@ impl IBKR {
         dates_slice: &[String],
         strike_slice: &HashMap<String, HashMap<String, Vec<f64>>>,
         spx_id: &str,
-    ) -> Result<HashMap<String, HashMap<String, HashMap<f64, String>>>, Box<dyn Error>> {
-        let mut conids_map: HashMap<String, HashMap<String, HashMap<f64, String>>> = HashMap::new();
+    ) -> Result<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>, Box<dyn Error>>
+    {
+        let mut conids_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>> =
+            HashMap::new();
         let mut months_slice: Vec<String> = Vec::new();
 
         for date in dates_slice {
