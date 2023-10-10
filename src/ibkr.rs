@@ -169,7 +169,7 @@ impl IBKR {
         }
 
         for date in dates_slice {
-            let formatted_date = convert_date(date); // Assuming you have or will write this function
+            let formatted_date = convert_date(date);
             if !months_slice.contains(&formatted_date) {
                 months_slice.push(formatted_date);
             }
@@ -205,7 +205,9 @@ impl IBKR {
                     let date: &str = &contract.maturity_date[2..];
                     if let Some(date_map) = conids_map.get_mut(date) {
                         if let Some(opt_type_map) = date_map.get_mut(&contract.right) {
-                            if let Some(conid_place) = opt_type_map.get_mut(&contract.strike) {
+                            if let Some(conid_place) =
+                                opt_type_map.get_mut((&contract.strike).into())
+                            {
                                 *conid_place = contract.conid.to_string();
                             }
                         }
