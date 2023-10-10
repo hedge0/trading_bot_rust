@@ -1,65 +1,65 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
-struct AccountResponse {
-    id: String,
+pub(crate) struct AccountResponse {
+    pub(crate) id: String,
 }
 
 #[derive(Serialize, Deserialize)]
-struct SecDefResponse {
-    company_name: String,
-    con_id: Option<String>,
+pub(crate) struct SecDefResponse {
+    pub(crate) company_name: String,
+    pub(crate) con_id: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
-struct SecDefInfoResponse {
-    con_id: f64,
-    trading_class: String,
-    maturity_date: String,
-    right: String,
-    strike: f64,
+pub(crate) struct SecDefInfoResponse {
+    pub(crate) con_id: f64,
+    pub(crate) trading_class: String,
+    pub(crate) maturity_date: String,
+    pub(crate) right: String,
+    pub(crate) strike: f64,
 }
 
 #[derive(Serialize, Deserialize)]
-struct PortfolioResponse {
-    equity_with_loan_value: PortfolioAmount,
+pub(crate) struct PortfolioResponse {
+    pub(crate) equity_with_loan_value: PortfolioAmount,
 }
 
 #[derive(Serialize, Deserialize)]
-struct PortfolioAmount {
-    amount: f64,
+pub(crate) struct PortfolioAmount {
+    pub(crate) amount: f64,
 }
 
 #[derive(Serialize, Deserialize)]
-struct OrderBody {
-    acct_id: String,
-    con_idex: String,
-    order_type: String,
-    listing_exchange: String,
-    outside_rth: bool,
-    price: f64,
-    side: String,
-    ticker: String,
-    tif: String,
-    referrer: String,
-    quantity: i32,
-    use_adaptive: bool,
+pub(crate) struct OrderBody {
+    pub(crate) acct_id: String,
+    pub(crate) con_idex: String,
+    pub(crate) order_type: String,
+    pub(crate) listing_exchange: String,
+    pub(crate) outside_rth: bool,
+    pub(crate) price: f64,
+    pub(crate) side: String,
+    pub(crate) ticker: String,
+    pub(crate) tif: String,
+    pub(crate) referrer: String,
+    pub(crate) quantity: i32,
+    pub(crate) use_adaptive: bool,
 }
 
 #[derive(Serialize, Deserialize)]
-struct RequestDataStruct {
-    orders: Vec<OrderBody>,
+pub(crate) struct RequestDataStruct {
+    pub(crate) orders: Vec<OrderBody>,
 }
 
 #[derive(Serialize, Deserialize)]
-struct Order {
-    status: String,
-    order_id: f64,
+pub(crate) struct Order {
+    pub(crate) status: String,
+    pub(crate) order_id: f64,
 }
 
 #[derive(Serialize, Deserialize)]
-struct OrdersResponse {
-    orders: Vec<Order>,
+pub(crate) struct OrdersResponse {
+    pub(crate) orders: Vec<Order>,
 }
 
 #[derive(Deserialize)]

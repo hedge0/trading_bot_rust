@@ -1,5 +1,6 @@
 mod activetick;
 mod helpers;
+mod ibkr;
 mod structs;
 
 use std::process::exit;
@@ -8,9 +9,12 @@ use std::time::{Duration, Instant};
 
 use activetick::ActiveTick;
 use helpers::{
-    calc_final_num_orders, get_api_key, get_fill_type, get_mode, get_option, get_password,
-    get_username, is_us_stock_market_open, is_weekday,
+    calc_final_num_orders, get_api_key, get_discount_value, get_fill_type, get_mode, get_option,
+    get_password, get_username, is_us_stock_market_open, is_weekday,
 };
+use ibkr::IBKR;
+
+use crate::helpers::get_dotenv_variable;
 
 fn main() {
     let mut num_orders: i32;
@@ -18,15 +22,22 @@ fn main() {
     let mut port_val: f64;
 
     let mut active_tick: ActiveTick = ActiveTick::new();
+    let mut ibkr = IBKR::new();
+
     let _ = active_tick.init(&get_username(), &get_password(), &get_api_key(), 4);
-    //let mut ibkr = IBKR::new();
 
     let option: String = get_option();
     let fill: String = get_fill_type();
     let mode: bool = get_mode();
 
     if mode {
-        //ibkr.init(get_discount_value(), go_dot_env_variable("DOMAIN"), go_dot_env_variable("PORT"), active_tick.get_dates_slice(), active_tick.get_strike_slice());
+        //ibkr.init(
+        //    get_discount_value(),
+        //    get_dotenv_variable("DOMAIN"),
+        //    get_dotenv_variable("PORT"),
+        //    active_tick.get_dates_slice(),
+        //    active_tick.get_strike_slice(),
+        //);
         println!("Bot is live !!!");
     }
 

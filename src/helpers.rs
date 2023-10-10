@@ -97,7 +97,7 @@ fn get_user_input(prompt: &str) -> String {
 }
 
 // Function that uses dotenv to load/read the .env file and return the value of the key.
-fn get_dotenv_variable(key: &str) -> Result<String, Box<dyn Error>> {
+pub(crate) fn get_dotenv_variable(key: &str) -> Result<String, Box<dyn Error>> {
     dotenv()?; // Load the .env file
     match env::var(key) {
         Ok(value) => Ok(value),
@@ -183,7 +183,7 @@ pub(crate) fn get_mode() -> bool {
 }
 
 // Function that gets discount value
-fn _get_discount_value() -> f64 {
+pub(crate) fn get_discount_value() -> f64 {
     match get_dotenv_variable("DISCOUNT_VALUE") {
         Ok(val) => match val.parse::<f64>() {
             Ok(val) => {
