@@ -12,14 +12,13 @@ use helpers::{
     get_username, is_us_stock_market_open, is_weekday,
 };
 
-#[tokio::main]
-async fn main() {
+fn main() {
     let mut num_orders: i32;
     let mut num_fills: i32;
     let mut port_val: f64;
 
     let mut active_tick: ActiveTick = ActiveTick::new();
-    let _ = active_tick.init(&get_username(), &get_password(), &get_api_key(), 1);
+    let _ = active_tick.init(&get_username(), &get_password(), &get_api_key(), 5);
     //let mut ibkr = IBKR::new();
 
     let option: String = get_option();
@@ -45,10 +44,7 @@ async fn main() {
             if num_orders > 0 {
                 let start_time: Instant = Instant::now();
 
-                match active_tick
-                    .get_contender_contracts(&option, num_orders)
-                    .await
-                {
+                match active_tick.get_contender_contracts(&option, num_orders) {
                     Ok(contender_contracts) => {
                         if !contender_contracts.is_empty() {
                             if mode {

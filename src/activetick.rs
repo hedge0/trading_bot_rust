@@ -1,11 +1,9 @@
 use chrono::{Datelike, Local};
 use ordered_float::OrderedFloat;
 use reqwest::blocking::{Client, Response};
+use std::collections::HashMap;
 use std::error::Error;
-use std::pin::Pin;
 use std::process::exit;
-use std::{collections::HashMap, future::Future};
-use tokio::task;
 
 use crate::{
     helpers::{calc_rank_value, calc_time_difference},
@@ -223,116 +221,81 @@ impl ActiveTick {
     }
 
     // Function that sends a GET request for SPX data, and then parses the response
-    async fn get_spx_data(
+    fn get_spx_data(
         &self,
         session_id: &str,
     ) -> Result<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>>, Box<dyn Error>>
     {
         let chain_url: &str = "https://api.activetick.com/chain.json";
         let current_time: chrono::DateTime<Local> = chrono::Local::now();
-        let end_time: chrono::DateTime<Local> =
+        let future_time: chrono::DateTime<Local> =
             current_time + self.num_days.ok_or("num_days is not set")?;
+        let formatted_time: String = current_time.format("%Y-%m-%dT%H:%M:%S").to_string();
+        let formatted_future_time: String = future_time.format("%Y-%m-%dT%H:%M:%S").to_string();
 
-        let mut handles = Vec::new();
+        let params: [(&str, &str); 7] = [
+            ("sessionid", session_id),
+            ("key", "SPXW_S U"),
+            ("chaintype", "equity_options"),
+            ("columns", "b,a,asz"),
+            ("begin_maturity_time", &formatted_time),
+            ("end_maturity_time", &formatted_future_time),
+            ("ignore_empty", "false"),
+        ];
 
-        let mut current = current_time;
+        let response: Response = self
+            .client
+            .as_ref()
+            .ok_or("Client is not initialized")?
+            .get(chain_url)
+            .header("Connection", "keep-alive")
+            .query(&params)
+            .send()?;
 
-        while current <= end_time {
-            let formatted_time = current.format("%Y-%m-%dT%H:%M:%S").to_string();
-
-            let handle = task::spawn(self.fetch_data_for_day(
-                chain_url.to_string(),
-                session_id.to_string(),
-                formatted_time.clone(),
-            ));
-            handles.push(handle);
-
-            current = current + chrono::Duration::days(1);
+        if !response.status().is_success() {
+            return Err(format!("Error: {}", response.status()).into());
         }
 
+        let chain_results: ChainResponse = response.json()?;
         let mut contracts_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>> =
             HashMap::new();
 
-        let mut responses = Vec::new();
+        for row in chain_results.rows.iter() {
+            if row.st == "ok" {
+                let parts: Vec<&str> = row.s.split('_').collect();
+                let code: &str = parts[1];
+                let exp_date: &str = &code[0..6];
+                let type_opt: &str = &code[6..7];
+                let strike_str: &str = &code[7..(code.len() - 3)];
+                let strike: OrderedFloat<f64> = OrderedFloat(strike_str.parse::<f64>().unwrap());
+                let bid: f64 = row.data[0].v.parse().unwrap();
+                let ask: f64 = row.data[1].v.parse().unwrap();
+                let asz_val: f64 = row.data[2].v.parse().unwrap();
+                let mkt_val: f64 = ((bid + ask) / 2.0 * 100.0).round() / 100.0;
 
-        for handle in handles {
-            let result = handle.await??;
-            responses.push(result);
-        }
-
-        for response in responses {
-            // Continue with your parsing logic here using each response
-            // and accumulate the results into contracts_map.
-            let chain_results: ChainResponse = response.json().await?;
-            for row in chain_results.rows.iter() {
-                if row.st == "ok" {
-                    let parts: Vec<&str> = row.s.split('_').collect();
-                    let code: &str = parts[1];
-                    let exp_date: &str = &code[0..6];
-                    let type_opt: &str = &code[6..7];
-                    let strike_str: &str = &code[7..(code.len() - 3)];
-                    let strike: OrderedFloat<f64> =
-                        OrderedFloat(strike_str.parse::<f64>().unwrap());
-                    let bid: f64 = row.data[0].v.parse().unwrap();
-                    let ask: f64 = row.data[1].v.parse().unwrap();
-                    let asz_val: f64 = row.data[2].v.parse().unwrap();
-                    let mkt_val: f64 = ((bid + ask) / 2.0 * 100.0).round() / 100.0;
-
-                    contracts_map
-                        .entry(exp_date.to_string())
-                        .or_insert_with(|| {
-                            let mut m: HashMap<String, HashMap<OrderedFloat<f64>, Opt>> =
-                                HashMap::new();
-                            m.insert("C".to_string(), HashMap::new());
-                            m.insert("P".to_string(), HashMap::new());
-                            m
-                        })
-                        .entry(type_opt.to_string())
-                        .or_insert(HashMap::new())
-                        .insert(
-                            strike,
-                            Opt {
-                                asz: asz_val,
-                                mkt: mkt_val,
-                                bid: bid,
-                            },
-                        );
-                }
+                contracts_map
+                    .entry(exp_date.to_string())
+                    .or_insert_with(|| {
+                        let mut m: HashMap<String, HashMap<OrderedFloat<f64>, Opt>> =
+                            HashMap::new();
+                        m.insert("C".to_string(), HashMap::new());
+                        m.insert("P".to_string(), HashMap::new());
+                        m
+                    })
+                    .entry(type_opt.to_string())
+                    .or_insert(HashMap::new())
+                    .insert(
+                        strike,
+                        Opt {
+                            asz: asz_val,
+                            mkt: mkt_val,
+                            bid: bid,
+                        },
+                    );
             }
         }
 
         Ok(contracts_map)
-    }
-
-    fn fetch_data_for_day(
-        &self,
-        chain_url: String,
-        session_id: String,
-        formatted_time: String,
-    ) -> Pin<Box<dyn Future<Output = Result<reqwest::Response, reqwest::Error>> + Send>> {
-        Box::pin(async move {
-            // existing logic ...
-            let client = reqwest::Client::new();
-
-            let params: [(&str, &str); 7] = [
-                ("sessionid", &session_id),
-                ("key", "SPXW_S U"),
-                ("chaintype", "equity_options"),
-                ("columns", "b,a,asz"),
-                ("begin_maturity_time", &formatted_time),
-                ("end_maturity_time", &formatted_time),
-                ("ignore_empty", "false"),
-            ];
-
-            let response: Result<reqwest::Response, reqwest::Error> = client
-                .get(chain_url)
-                .header("Connection", "keep-alive")
-                .query(&params)
-                .send()
-                .await;
-
-            response
-        })
     }
 
     // Function that returns a slice of the top calendar arbs
@@ -637,14 +600,14 @@ impl ActiveTick {
     }
 
     // Function that returns a slice of the top arbs given the number of orders
-    pub(crate) async fn get_contender_contracts(
+    pub(crate) fn get_contender_contracts(
         &self,
         option: &str,
         num_orders: i32,
     ) -> Result<Vec<Contender>, Box<dyn Error>> {
         let session_id: String = self.get_session_id()?;
         let contracts_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>> =
-            self.get_spx_data(&session_id).await.unwrap();
+            self.get_spx_data(&session_id)?;
         let mut contender_contracts_total: Vec<Contender> = Vec::new();
 
         match OptionType::from_str(option).ok_or("Invalid option type")? {
