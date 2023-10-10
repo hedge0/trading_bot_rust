@@ -12,7 +12,8 @@ use helpers::{
     get_username, is_us_stock_market_open, is_weekday,
 };
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let mut num_orders: i32;
     let mut num_fills: i32;
     let mut port_val: f64;
@@ -44,7 +45,10 @@ fn main() {
             if num_orders > 0 {
                 let start_time: Instant = Instant::now();
 
-                match active_tick.get_contender_contracts(&option, num_orders) {
+                match active_tick
+                    .get_contender_contracts(&option, num_orders)
+                    .await
+                {
                     Ok(contender_contracts) => {
                         if !contender_contracts.is_empty() {
                             if mode {
