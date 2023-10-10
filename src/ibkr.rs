@@ -1,4 +1,4 @@
-use reqwest::blocking::{Client, Response};
+use reqwest::blocking::{Client, ClientBuilder, Response};
 use std::{collections::HashMap, error::Error, process::exit};
 
 use crate::structs::AccountResponse;
@@ -37,7 +37,12 @@ impl IBKR {
         self.discount_value = Some(discount_value);
         self.domain = Some(domain);
         self.port = Some(port);
-        self.client = Some(Client::new());
+        self.client = Some(
+            ClientBuilder::new()
+                .danger_accept_invalid_certs(true)
+                .build()
+                .unwrap(),
+        );
         match self.get_account_id() {
             Ok(account_id) => {
                 self.account_id = Some(account_id);
@@ -66,10 +71,11 @@ impl IBKR {
             .ok_or("Client is not initialized")?
             .get(search_url)
             .header("Connection", "keep-alive")
+            .header("User-Agent", "trading_bot_rust/1.0")
             .send()?;
 
         if !response.status().is_success() {
-            eprintln!("Error: {}", response.status());
+            eprintln!("Error: {}\nBody: {:?}", response.status(), response.text()?);
             exit(1);
         }
 
