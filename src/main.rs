@@ -34,11 +34,11 @@ fn main() {
             get_discount_value(),
             match get_dotenv_variable("DOMAIN") {
                 Ok(val) => val,
-                Err(_) => "".to_string(),
+                Err(_) => "localhost".to_string(),
             },
             match get_dotenv_variable("PORT") {
                 Ok(val) => val,
-                Err(_) => "".to_string(),
+                Err(_) => "5000".to_string(),
             },
             active_tick.get_dates_slice(),
             active_tick.get_strike_slice(),

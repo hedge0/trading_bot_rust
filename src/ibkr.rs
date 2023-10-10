@@ -51,6 +51,7 @@ impl IBKR {
         Ok(())
     }
 
+    // Function that sends a GET request for portfolio ID
     fn get_account_id(&self) -> Result<String, Box<dyn Error>> {
         let search_url: String = format!(
             "https://{}:{}/v1/api/portfolio/accounts",
