@@ -179,12 +179,14 @@ impl ActiveTick {
             .send()?;
 
         if !response.status().is_success() {
-            return Err(format!("Error: {}", response.status()).into());
+            eprintln!("Error: {}", response.status());
+            exit(1);
         }
 
         let chain_results: ChainResponse = response.json()?;
         if chain_results.rows.is_empty() {
-            return Err("Error: SPX rows data is empty".into());
+            eprintln!("Error: SPX rows data is empty");
+            exit(1);
         }
         let mut dates_slice: Vec<String> = Vec::new();
         let mut strike_slice: HashMap<String, HashMap<String, Vec<f64>>> = HashMap::new();
@@ -231,7 +233,7 @@ impl ActiveTick {
                 .sort_by(|a, b| a.partial_cmp(b).unwrap());
         }
 
-        Ok((Some(dates_slice), Some(strike_slice)))
+        return Ok((Some(dates_slice), Some(strike_slice)));
     }
 
     // Function that sends a GET request for SPX data, and then parses the response
@@ -271,7 +273,8 @@ impl ActiveTick {
             .send()?;
 
         if !response.status().is_success() {
-            return Err(format!("Error: {}", response.status()).into());
+            eprintln!("Error: {}", response.status());
+            exit(1);
         }
 
         let chain_results: ChainResponse = response.json()?;
@@ -317,7 +320,7 @@ impl ActiveTick {
             }
         }
 
-        Ok(contracts_map)
+        return Ok(contracts_map);
     }
 
     // Function that returns a slice of the top calendar arbs
@@ -400,7 +403,7 @@ impl ActiveTick {
             }
         }
 
-        Ok(contender_contracts)
+        return Ok(contender_contracts);
     }
 
     // Function that returns a slice of the top butterfly arbs
@@ -503,7 +506,7 @@ impl ActiveTick {
             }
         }
 
-        Ok(contender_contracts)
+        return Ok(contender_contracts);
     }
 
     // Function that returns a slice of the top boxspread arbs
@@ -618,7 +621,7 @@ impl ActiveTick {
             }
         }
 
-        Ok(contender_contracts)
+        return Ok(contender_contracts);
     }
 
     // Function that returns a slice of the top arbs given the number of orders
@@ -668,6 +671,6 @@ impl ActiveTick {
             contender_contracts_total.truncate(num_orders_usize);
         }
 
-        Ok(contender_contracts_total)
+        return Ok(contender_contracts_total);
     }
 }
