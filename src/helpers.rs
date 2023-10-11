@@ -182,6 +182,45 @@ pub(crate) fn get_mode() -> bool {
     }
 }
 
+// Function that gets seconds to wait before cancelling and trying again
+pub(crate) fn get_seconds_to_sleep() -> u64 {
+    match get_dotenv_variable("SECONDS_TO_SLEEP") {
+        Ok(val) => {
+            match val.parse::<u64>() {
+                Ok(parsed_val) => {
+                    if parsed_val > 5 {
+                        parsed_val
+                    } else {
+                        println!("Not a valid positive integer greater than or equal to 5, setting to 60");
+                        60
+                    }
+                }
+                Err(_) => {
+                    println!("Not a valid integer, setting to 60");
+                    60
+                }
+            }
+        }
+        Err(_) => {
+            let input: String = get_user_input("Enter number of seconds to sleep:");
+            match input.parse::<u64>() {
+                Ok(parsed_input) => {
+                    if parsed_input > 5 {
+                        parsed_input
+                    } else {
+                        println!("Not a valid positive integer greater than or equal to 5, setting to 60");
+                        60
+                    }
+                }
+                Err(_) => {
+                    println!("Not a valid integer, setting to 60");
+                    60
+                }
+            }
+        }
+    }
+}
+
 // Function that gets discount value
 pub(crate) fn get_discount_value() -> f64 {
     match get_dotenv_variable("DISCOUNT_VALUE") {

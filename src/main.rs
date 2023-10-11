@@ -10,7 +10,7 @@ use std::time::{Duration, Instant};
 use activetick::ActiveTick;
 use helpers::{
     calc_final_num_orders, get_api_key, get_discount_value, get_fill_type, get_mode, get_option,
-    get_password, get_username, is_us_stock_market_open, is_weekday,
+    get_password, get_seconds_to_sleep, get_username, is_us_stock_market_open, is_weekday,
 };
 use ibkr::IBKR;
 
@@ -28,6 +28,7 @@ fn main() {
     let option: String = get_option();
     let fill: String = get_fill_type();
     let mode: bool = get_mode();
+    let seconds_to_sleep: u64 = get_seconds_to_sleep();
 
     if mode {
         match ibkr.init(
@@ -121,9 +122,9 @@ fn main() {
 
             // Sleep to avoid throttling resources
             println!("");
-            println!("Sleeping for 30 seconds...");
-            sleep(Duration::from_secs(30));
-            println!("Awake after 30 seconds!");
+            println!("Sleeping for {} seconds...", seconds_to_sleep);
+            sleep(Duration::from_secs(seconds_to_sleep));
+            println!("Awake after {} seconds!", seconds_to_sleep);
             println!("");
 
             if mode {
