@@ -281,20 +281,17 @@ impl ActiveTick {
 
         let start_time: Instant = Instant::now();
 
-        // Read the response text first
+        // 1. Read the response text
         let response_text = response.text()?;
 
-        let mut buf = response_text.into_bytes();
-        buf.resize(buf.len() + simd_json::buffer::extra_capacity(), 0);
+        // 2. Use simd-json to get a parsed Value
+        let parsed_value: simd_json::OwnedValue = simd_json::from_str(&mut &response_text)?;
 
-        // Parse to a simd-json Value
-        let parsed_value: simd_json::BorrowedValue = simd_json::to_borrowed_value(&mut &buf)?;
+        // 3. Convert the simd-json Value to a String (this is not super efficient, but necessary for the next step)
+        let serialized_string = parsed_value.to_string();
 
-        // Convert to a serde_json::Value
-        let json_value: serde_json::Value = serde_json::from_str(&parsed_value.to_string())?;
-
-        // Deserialize to your struct
-        let chain_results: ChainResponse = serde_json::from_value(json_value)?;
+        // 4. Now, use serde_json to deserialize the String to your ChainResponse struct
+        let chain_results: ChainResponse = serde_json::from_str(&serialized_string)?;
 
         let elapsed_time: Duration = start_time.elapsed();
         println!("Total time taken: {:?}", elapsed_time);
