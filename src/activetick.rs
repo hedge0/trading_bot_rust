@@ -288,6 +288,7 @@ impl ActiveTick {
         let parsed_value: simd_json::BorrowedValue = simd_json::to_borrowed_value(&mut &buf)?;
         let chain_results: ChainResponse = parsed_value.try_into()?;
 
+        let elapsed_time: Duration = start_time.elapsed();
         println!("Total time taken: {:?}", elapsed_time);
 
         let mut contracts_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>> =
