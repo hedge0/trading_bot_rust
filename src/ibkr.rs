@@ -283,11 +283,6 @@ impl IBKR {
             println!("Order ID {} cancelled successfully.", order_id);
             Ok(())
         } else {
-            eprintln!(
-                "Failed to cancel order ID {}. Error: {}",
-                order_id,
-                response.status()
-            );
             Err(Box::new(io::Error::new(
                 ErrorKind::Other,
                 format!(
