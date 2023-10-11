@@ -1,9 +1,12 @@
 use chrono::{Datelike, Local};
 use ordered_float::OrderedFloat;
 use reqwest::blocking::{Client, Response};
-use std::collections::HashMap;
+use simd_json::prelude::*;
+use simd_json::serde::prelude::*;
 use std::error::Error;
 use std::process::exit;
+use std::time::Duration;
+use std::{collections::HashMap, time::Instant};
 
 use crate::{
     helpers::{calc_rank_value, calc_time_difference},
@@ -277,7 +280,16 @@ impl ActiveTick {
             exit(1);
         }
 
-        let chain_results: ChainResponse = response.json()?;
+        let start_time: Instant = Instant::now();
+
+        let response_text = response.text()?;
+        let mut buf = response_text.into_bytes();
+        buf.resize(buf.len() + simd_json::buffer::extra_capacity(), 0);
+        let parsed_value: simd_json::BorrowedValue = simd_json::to_borrowed_value(&mut &buf)?;
+        let chain_results: ChainResponse = parsed_value.try_into()?;
+
+        println!("Total time taken: {:?}", elapsed_time);
+
         let mut contracts_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>> =
             HashMap::new();
 
