@@ -282,10 +282,10 @@ impl ActiveTick {
         let start_time: Instant = Instant::now();
 
         // 1. Read the response text
-        let response_text = response.text()?;
+        let mut response_text = response.text()?;
 
         // 2. Use simd-json to get a parsed Value
-        let parsed_value: simd_json::OwnedValue = simd_json::from_str(&mut &response_text)?;
+        let parsed_value: simd_json::OwnedValue = simd_json::from_str(&mut response_text)?;
 
         // 3. Convert the simd-json Value to a String (this is not super efficient, but necessary for the next step)
         let serialized_string = parsed_value.to_string();
