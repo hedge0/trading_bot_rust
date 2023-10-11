@@ -1,7 +1,6 @@
 use chrono::{Datelike, Local};
 use ordered_float::OrderedFloat;
 use reqwest::blocking::{Client, Response};
-use simd_json;
 use std::error::Error;
 use std::process::exit;
 use std::time::Duration;
@@ -280,19 +279,7 @@ impl ActiveTick {
         }
 
         let start_time: Instant = Instant::now();
-
-        // 1. Read the response text
-        let mut response_text = response.text()?;
-
-        // 2. Use simd-json to get a parsed Value
-        let parsed_value: simd_json::OwnedValue = simd_json::from_str(&mut response_text)?;
-
-        // 3. Convert the simd-json Value to a String (this is not super efficient, but necessary for the next step)
-        let serialized_string = parsed_value.to_string();
-
-        // 4. Now, use serde_json to deserialize the String to your ChainResponse struct
-        let chain_results: ChainResponse = serde_json::from_str(&serialized_string)?;
-
+        let chain_results: ChainResponse = response.json()?;
         let elapsed_time: Duration = start_time.elapsed();
         println!("Total time taken: {:?}", elapsed_time);
 
