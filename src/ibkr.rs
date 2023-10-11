@@ -1,6 +1,11 @@
 use ordered_float::OrderedFloat;
 use reqwest::blocking::{Client, ClientBuilder, Response};
-use std::{collections::HashMap, error::Error, process::exit};
+use std::{
+    collections::HashMap,
+    error::Error,
+    io::{self, ErrorKind},
+    process::exit,
+};
 
 use crate::{
     helpers::convert_date,
@@ -253,5 +258,44 @@ impl IBKR {
 
         let search_results: PortfolioResponse = response.json()?;
         Ok(search_results.equity_with_loan_value.amount)
+    }
+
+    // Function that cancels a single order
+    fn _cancel_order(&self, order_id: &str) -> Result<(), Box<dyn Error>> {
+        let cancel_order_url = format!(
+            "https://{}:{}/v1/api/iserver/account/{}/order/{}",
+            self.domain.as_ref().unwrap(),
+            self.port.as_ref().unwrap(),
+            self.account_id.as_ref().unwrap(),
+            order_id
+        );
+
+        let response: Response = self
+            .client
+            .as_ref()
+            .ok_or("Client is not initialized")?
+            .delete(&cancel_order_url)
+            .header("Connection", "keep-alive")
+            .header("User-Agent", "trading_bot_rust/1.0")
+            .send()?;
+
+        if response.status().is_success() {
+            println!("Order ID {} cancelled successfully.", order_id);
+            Ok(())
+        } else {
+            eprintln!(
+                "Failed to cancel order ID {}. Error: {}",
+                order_id,
+                response.status()
+            );
+            Err(Box::new(io::Error::new(
+                ErrorKind::Other,
+                format!(
+                    "Failed to cancel order ID {}. HTTP status: {}",
+                    order_id,
+                    response.status()
+                ),
+            )))
+        }
     }
 }
