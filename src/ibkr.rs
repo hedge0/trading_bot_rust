@@ -262,7 +262,7 @@ impl IBKR {
 
     // Function that cancels a single order
     fn _cancel_order(&self, order_id: &str) -> Result<(), Box<dyn Error>> {
-        let cancel_order_url = format!(
+        let cancel_order_url: String = format!(
             "https://{}:{}/v1/api/iserver/account/{}/order/{}",
             self.domain.as_ref().unwrap(),
             self.port.as_ref().unwrap(),
