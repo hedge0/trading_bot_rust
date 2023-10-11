@@ -70,7 +70,7 @@ impl IBKR {
                 self.conids_map = Some(conids_map);
             }),
             Err(e) => {
-                eprintln!("Failed to get SPX ID: {}", e);
+                eprintln!("Failed to init conid map: {}", e);
                 exit(1)
             }
         }
