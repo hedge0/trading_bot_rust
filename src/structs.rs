@@ -1,6 +1,4 @@
 use serde::{Deserialize, Serialize};
-use simd_json::prelude::*;
-use simd_json::serde::prelude::*;
 
 #[derive(Serialize, Deserialize)]
 pub(crate) struct AccountResponse {

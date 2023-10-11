@@ -1,8 +1,7 @@
 use chrono::{Datelike, Local};
 use ordered_float::OrderedFloat;
 use reqwest::blocking::{Client, Response};
-use simd_json::prelude::*;
-use simd_json::serde::prelude::*;
+use simd_json;
 use std::error::Error;
 use std::process::exit;
 use std::time::Duration;
@@ -282,11 +281,20 @@ impl ActiveTick {
 
         let start_time: Instant = Instant::now();
 
+        // Read the response text first
         let response_text = response.text()?;
+
         let mut buf = response_text.into_bytes();
         buf.resize(buf.len() + simd_json::buffer::extra_capacity(), 0);
+
+        // Parse to a simd-json Value
         let parsed_value: simd_json::BorrowedValue = simd_json::to_borrowed_value(&mut &buf)?;
-        let chain_results: ChainResponse = parsed_value.try_into()?;
+
+        // Convert to a serde_json::Value
+        let json_value: serde_json::Value = serde_json::from_str(&parsed_value.to_string())?;
+
+        // Deserialize to your struct
+        let chain_results: ChainResponse = serde_json::from_value(json_value)?;
 
         let elapsed_time: Duration = start_time.elapsed();
         println!("Total time taken: {:?}", elapsed_time);
