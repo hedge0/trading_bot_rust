@@ -1,10 +1,9 @@
 use chrono::{Datelike, Local};
 use ordered_float::OrderedFloat;
 use reqwest::blocking::{Client, Response};
+use std::collections::HashMap;
 use std::error::Error;
 use std::process::exit;
-use std::time::Duration;
-use std::{collections::HashMap, time::Instant};
 
 use crate::{
     helpers::{calc_rank_value, calc_time_difference},
@@ -278,11 +277,7 @@ impl ActiveTick {
             exit(1);
         }
 
-        let start_time: Instant = Instant::now();
         let chain_results: ChainResponse = response.json()?;
-        let elapsed_time: Duration = start_time.elapsed();
-        println!("Total time taken: {:?}", elapsed_time);
-
         let mut contracts_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>> =
             HashMap::new();
 
