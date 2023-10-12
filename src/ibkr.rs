@@ -261,7 +261,7 @@ impl IBKR {
     }
 
     // Function that cancels a single order
-    fn _cancel_order(&self, order_id: &str) -> Result<(), Box<dyn Error>> {
+    fn _cancel_order(&self, order_id: &str) -> Result<String, Box<dyn Error>> {
         let cancel_order_url: String = format!(
             "https://{}:{}/v1/api/iserver/account/{}/order/{}",
             self.domain.as_ref().unwrap(),
@@ -280,8 +280,7 @@ impl IBKR {
             .send()?;
 
         if response.status().is_success() {
-            println!("Order ID {} cancelled successfully.", order_id);
-            Ok(())
+            Ok(format!("Order ID {} cancelled successfully.", order_id))
         } else {
             Err(Box::new(io::Error::new(
                 ErrorKind::Other,
