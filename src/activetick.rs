@@ -338,7 +338,7 @@ impl ActiveTick {
         let strike_slice: &HashMap<String, HashMap<String, Vec<f64>>> = self
             .strike_slice
             .as_ref()
-            .ok_or("strike_slice is not set")?;
+            .ok_or("strike slice is not set")?;
 
         for date_index in 0..(dates_slice.len() - 1) {
             let date: &String = &dates_slice[date_index];
