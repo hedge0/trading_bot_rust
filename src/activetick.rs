@@ -334,7 +334,7 @@ impl ActiveTick {
             format!("{:02}{:02}{:02}", now.year() % 100, now.month(), now.day());
 
         let dates_slice: &Vec<String> =
-            self.dates_slice.as_ref().ok_or("dates_slice is not set")?;
+            self.dates_slice.as_ref().ok_or("dates slice is not set")?;
         let strike_slice: &HashMap<String, HashMap<String, Vec<f64>>> = self
             .strike_slice
             .as_ref()
@@ -350,10 +350,7 @@ impl ActiveTick {
                             .get(date)
                             .and_then(|m| m.get(type_contract))
                             .and_then(|m| m.get(strike.into()))
-                            .ok_or(format!(
-                                "Error accessing {} for date: {}",
-                                type_contract, date
-                            ))?;
+                            .ok_or("Error accessing current contract")?;
 
                         let next_date: &String = &dates_slice[date_index + 1];
                         let next_opt: Option<&Opt> = contracts_map
@@ -536,28 +533,28 @@ impl ActiveTick {
                                 .get(date)
                                 .and_then(|c| c.get("C"))
                                 .and_then(|c| c.get(current_strike_c.into()))
-                                .ok_or("Error accessing current_c")?;
+                                .ok_or("Error accessing current call contract")?;
 
                             let current_strike_p: &f64 = &ps[i];
                             let current_p: &Opt = contracts_map
                                 .get(date)
                                 .and_then(|p| p.get("P"))
                                 .and_then(|p| p.get(current_strike_p.into()))
-                                .ok_or("Error accessing current_p")?;
+                                .ok_or("Error accessing current put contract")?;
 
                             let right_strike_c: &f64 = &cs[i + 1];
                             let right_c: &Opt = contracts_map
                                 .get(date)
                                 .and_then(|c| c.get("C"))
                                 .and_then(|c| c.get(right_strike_c.into()))
-                                .ok_or("Error accessing right_c")?;
+                                .ok_or("Error accessing right call contract")?;
 
                             let right_strike_p: &f64 = &ps[i + 1];
                             let right_p: &Opt = contracts_map
                                 .get(date)
                                 .and_then(|p| p.get("P"))
                                 .and_then(|p| p.get(right_strike_p.into()))
-                                .ok_or("Error accessing right_p")?;
+                                .ok_or("Error accessing right put contract")?;
 
                             let arb_val: f64 =
                                 (current_c.mkt + right_p.mkt) - (current_p.mkt + right_c.mkt) - 5.0;
