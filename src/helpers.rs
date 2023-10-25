@@ -1,8 +1,6 @@
 use chrono::{Datelike, NaiveDate, Timelike, Utc, Weekday};
 use dotenv::dotenv;
-use std::env;
-use std::error::Error;
-use std::io;
+use std::{env, error::Error, io};
 
 pub(crate) fn is_us_stock_market_open() -> bool {
     let market_open_hour: u32 = 9;

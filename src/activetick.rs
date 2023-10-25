@@ -1,9 +1,7 @@
 use chrono::{Datelike, Local};
 use ordered_float::OrderedFloat;
 use reqwest::blocking::{Client, Response};
-use std::collections::HashMap;
-use std::error::Error;
-use std::process::exit;
+use std::{collections::HashMap, error::Error, process::exit};
 
 use crate::{
     helpers::{calc_rank_value, calc_time_difference},
