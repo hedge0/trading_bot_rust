@@ -60,7 +60,7 @@ impl IBKR {
             }
             Err(e) => {
                 eprintln!("Failed to get account ID: {}", e);
-                exit(1)
+                exit(1);
             }
         }
         match self.get_spx_conid() {
@@ -69,7 +69,7 @@ impl IBKR {
             }
             Err(e) => {
                 eprintln!("Failed to get SPX ID: {}", e);
-                exit(1)
+                exit(1);
             }
         }
         match self.get_conids_map(&dates_slice, &strike_slice) {
@@ -78,7 +78,7 @@ impl IBKR {
             }),
             Err(e) => {
                 eprintln!("Failed to init conid map: {}", e);
-                exit(1)
+                exit(1);
             }
         }
     }
