@@ -24,7 +24,13 @@ fn main() {
     let mut active_tick: ActiveTick = ActiveTick::new();
     let mut ibkr: IBKR = IBKR::new();
 
-    let _ = active_tick.init(&get_username(), &get_password(), &get_api_key(), 4);
+    match active_tick.init(&get_username(), &get_password(), &get_api_key(), 4) {
+        Ok(_) => println!("User authenticated"),
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            exit(1)
+        }
+    }
 
     let option: String = get_option();
     let fill: String = get_fill_type();
