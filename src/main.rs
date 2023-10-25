@@ -68,7 +68,7 @@ fn main() {
                     }
                     Err(e) => {
                         eprintln!("Failed to get portfolio value: {}", e);
-                        exit(1)
+                        exit(1);
                     }
                 }
             } else {
