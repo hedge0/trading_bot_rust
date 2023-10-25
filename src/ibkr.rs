@@ -5,6 +5,8 @@ use std::{
     error::Error,
     io::{self, ErrorKind},
     process::exit,
+    thread::sleep,
+    time::Duration,
 };
 
 use crate::{
@@ -15,6 +17,7 @@ use crate::{
 pub(crate) struct IBKR {
     discount_value: Option<f64>,
     base_url: Option<String>,
+    live_orders: Option<Vec<String>>,
     client: Option<Client>,
     account_id: Option<String>,
     spx_id: Option<String>,
@@ -26,6 +29,7 @@ impl IBKR {
         IBKR {
             discount_value: None,
             base_url: None,
+            live_orders: None,
             client: None,
             account_id: None,
             spx_id: None,
@@ -43,6 +47,7 @@ impl IBKR {
     ) -> Result<(), Box<dyn Error>> {
         self.discount_value = Some(discount_value);
         self.base_url = Some(format!("https://{}:{}", domain, port));
+        self.live_orders = Some(Vec::new());
         self.client = Some(
             ClientBuilder::new()
                 .danger_accept_invalid_certs(true)
@@ -253,8 +258,30 @@ impl IBKR {
         Ok(search_results.equity_with_loan_value.amount)
     }
 
+    // Function that cancels all submitted and presubmitted orders
+    pub fn cancel_pending_orders(&mut self) {
+        println!("Cancelling all pending limit orders");
+
+        if let Some(live_orders) = &self.live_orders {
+            let order_ids: Vec<_> = live_orders.iter().cloned().collect();
+
+            for order_id in order_ids {
+                match self.cancel_order(&order_id) {
+                    Ok(message) => println!("{}", message),
+                    Err(e) => eprintln!("Error: {}", e),
+                }
+            }
+        }
+
+        if let Some(live_orders) = &mut self.live_orders {
+            live_orders.clear();
+        }
+
+        sleep(Duration::from_secs(1));
+    }
+
     // Function that cancels a single order
-    fn _cancel_order(&self, order_id: &str) -> Result<String, Box<dyn Error>> {
+    fn cancel_order(&self, order_id: &str) -> Result<String, Box<dyn Error>> {
         let cancel_order_url: String = format!(
             "{}/v1/api/iserver/account/{}/order/{}",
             self.base_url.as_ref().unwrap(),

@@ -128,7 +128,7 @@ fn main() {
             println!("");
 
             if mode {
-                //ibkr.cancel_pending_orders();
+                ibkr.cancel_pending_orders();
             }
         } else {
             println!("Market is closed");
