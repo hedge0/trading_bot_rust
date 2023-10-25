@@ -28,7 +28,7 @@ fn main() {
         Ok(_) => println!("User authenticated"),
         Err(e) => {
             eprintln!("Error: {}", e);
-            exit(1)
+            exit(1);
         }
     }
 
