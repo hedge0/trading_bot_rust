@@ -54,7 +54,7 @@ fn main() {
             Ok(_) => println!("Bot is live !!!"),
             Err(e) => {
                 eprintln!("Error: {}", e);
-                exit(1)
+                exit(1);
             }
         }
     }
