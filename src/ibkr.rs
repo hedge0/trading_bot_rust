@@ -14,8 +14,7 @@ use crate::{
 
 pub(crate) struct IBKR {
     discount_value: Option<f64>,
-    domain: Option<String>,
-    port: Option<String>,
+    base_url: Option<String>,
     client: Option<Client>,
     account_id: Option<String>,
     spx_id: Option<String>,
@@ -26,8 +25,7 @@ impl IBKR {
     pub(crate) fn new() -> Self {
         IBKR {
             discount_value: None,
-            domain: None,
-            port: None,
+            base_url: None,
             client: None,
             account_id: None,
             spx_id: None,
@@ -44,8 +42,7 @@ impl IBKR {
         strike_slice: HashMap<String, HashMap<String, Vec<f64>>>,
     ) -> Result<(), Box<dyn Error>> {
         self.discount_value = Some(discount_value);
-        self.domain = Some(domain);
-        self.port = Some(port);
+        self.base_url = Some(format!("https://{}:{}", domain, port));
         self.client = Some(
             ClientBuilder::new()
                 .danger_accept_invalid_certs(true)
@@ -84,9 +81,8 @@ impl IBKR {
     // Function that sends a GET request for portfolio ID
     fn get_account_id(&self) -> Result<String, Box<dyn Error>> {
         let search_url: String = format!(
-            "https://{}:{}/v1/api/portfolio/accounts",
-            self.domain.as_ref().unwrap(),
-            self.port.as_ref().unwrap()
+            "{}/v1/api/portfolio/accounts",
+            self.base_url.as_ref().unwrap()
         );
 
         let response: Response = self
@@ -115,9 +111,8 @@ impl IBKR {
     // Function that sends a GET request for SPX ID
     fn get_spx_conid(&self) -> Result<String, Box<dyn Error>> {
         let search_url: String = format!(
-            "https://{}:{}/v1/api/iserver/secdef/search?symbol=SPX",
-            self.domain.as_ref().unwrap(),
-            self.port.as_ref().unwrap()
+            "{}/v1/api/iserver/secdef/search?symbol=SPX",
+            self.base_url.as_ref().unwrap()
         );
 
         let response: Response = self
@@ -191,9 +186,8 @@ impl IBKR {
 
         for month in months_slice {
             let search_url: String = format!(
-                "https://{}:{}/v1/api/iserver/secdef/info?conid={}&sectype=OPT&month={}&exchange=SMART&strike=0",
-                self.domain.as_ref().unwrap(),
-                self.port.as_ref().unwrap(),
+                "{}/v1/api/iserver/secdef/info?conid={}&sectype=OPT&month={}&exchange=SMART&strike=0",
+                self.base_url.as_ref().unwrap(),
                 self.spx_id.as_ref().unwrap(),
                 month
             );
@@ -236,9 +230,8 @@ impl IBKR {
     // Function that sends a GET request for portfolio value
     pub(crate) fn get_portfolio_value(&self) -> Result<f64, Box<dyn Error>> {
         let search_url: String = format!(
-            "https://{}:{}/v1/api/portfolio/{}/summary",
-            self.domain.as_ref().unwrap(),
-            self.port.as_ref().unwrap(),
+            "{}/v1/api/portfolio/{}/summary",
+            self.base_url.as_ref().unwrap(),
             self.account_id.as_ref().unwrap()
         );
 
@@ -263,9 +256,8 @@ impl IBKR {
     // Function that cancels a single order
     fn _cancel_order(&self, order_id: &str) -> Result<String, Box<dyn Error>> {
         let cancel_order_url: String = format!(
-            "https://{}:{}/v1/api/iserver/account/{}/order/{}",
-            self.domain.as_ref().unwrap(),
-            self.port.as_ref().unwrap(),
+            "{}/v1/api/iserver/account/{}/order/{}",
+            self.base_url.as_ref().unwrap(),
             self.account_id.as_ref().unwrap(),
             order_id
         );
