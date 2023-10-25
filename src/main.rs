@@ -3,18 +3,19 @@ mod helpers;
 mod ibkr;
 mod structs;
 
-use std::process::exit;
-use std::thread::sleep;
-use std::time::{Duration, Instant};
+use std::{
+    process::exit,
+    thread::sleep,
+    time::{Duration, Instant},
+};
 
 use activetick::ActiveTick;
 use helpers::{
-    calc_final_num_orders, get_api_key, get_discount_value, get_fill_type, get_mode, get_option,
-    get_password, get_seconds_to_sleep, get_username, is_us_stock_market_open, is_weekday,
+    calc_final_num_orders, get_api_key, get_discount_value, get_dotenv_variable, get_fill_type,
+    get_mode, get_option, get_password, get_seconds_to_sleep, get_username,
+    is_us_stock_market_open, is_weekday,
 };
 use ibkr::IBKR;
-
-use crate::helpers::get_dotenv_variable;
 
 fn main() {
     let mut num_orders: i32;
