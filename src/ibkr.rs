@@ -259,7 +259,7 @@ impl IBKR {
     }
 
     // Function that cancels all submitted and presubmitted orders
-    pub fn cancel_pending_orders(&mut self) {
+    pub(crate) fn cancel_pending_orders(&mut self) {
         println!("Cancelling all pending limit orders");
 
         if let Some(live_orders) = &self.live_orders {
