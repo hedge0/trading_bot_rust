@@ -266,7 +266,7 @@ impl IBKR {
         println!("Cancelling all pending limit orders");
 
         if let Some(live_orders) = &self.live_orders {
-            let order_ids: Vec<_> = live_orders.iter().cloned().collect();
+            let order_ids: Vec<String> = live_orders.iter().cloned().collect();
 
             for order_id in order_ids {
                 match self.cancel_order(&order_id) {
