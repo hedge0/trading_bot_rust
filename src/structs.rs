@@ -36,10 +36,15 @@ pub(crate) struct PortfolioAmount {
 
 #[derive(Serialize, Deserialize)]
 pub(crate) struct OrderBody {
+    #[serde(rename = "acctId")]
     pub(crate) acct_id: String,
+    #[serde(rename = "conidex")]
     pub(crate) con_idex: String,
+    #[serde(rename = "orderType")]
     pub(crate) order_type: String,
+    #[serde(rename = "listingExchange")]
     pub(crate) listing_exchange: String,
+    #[serde(rename = "outsideRTH")]
     pub(crate) outside_rth: bool,
     pub(crate) price: f64,
     pub(crate) side: String,
@@ -47,6 +52,7 @@ pub(crate) struct OrderBody {
     pub(crate) tif: String,
     pub(crate) referrer: String,
     pub(crate) quantity: i32,
+    #[serde(rename = "useAdaptive")]
     pub(crate) use_adaptive: bool,
 }
 

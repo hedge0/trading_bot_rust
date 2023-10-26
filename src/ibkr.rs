@@ -11,7 +11,10 @@ use std::{
 
 use crate::{
     helpers::convert_date,
-    structs::{AccountResponse, PortfolioResponse, SecDefInfoResponse, SecDefResponse},
+    structs::{
+        AccountResponse, Contender, OrderBody, PortfolioResponse, SecDefInfoResponse,
+        SecDefResponse,
+    },
 };
 
 pub(crate) struct IBKR {
@@ -309,6 +312,109 @@ impl IBKR {
                     response.status()
                 ),
             )))
+        }
+    }
+
+    // Function that makes orders all contender contracts
+    pub(crate) fn order_contender_contracts(
+        &self,
+        contender_contracts: &Vec<Contender>,
+        num_fills: i32,
+    ) {
+        let _order_url: String = format!(
+            "{}/v1/api/iserver/account/{}/orders",
+            self.base_url.as_ref().unwrap(),
+            self.account_id.as_ref().unwrap()
+        );
+
+        let mut request_data: Vec<OrderBody> = Vec::new();
+
+        for contract in contender_contracts {
+            match contract.type_spread.as_str() {
+                "Calendar" => {
+                    request_data.push(OrderBody {
+                        acct_id: self.account_id.clone().unwrap(),
+                        con_idex: format!(
+                            "28812380;;;{}/-1,{}",
+                            self.conids_map.as_ref().unwrap()[contract.contracts[0].date.as_str()]
+                                [contract.contracts[0].type_contract.as_str()]
+                                [(&contract.contracts[0].strike).into()],
+                            self.conids_map.as_ref().unwrap()[contract.contracts[1].date.as_str()]
+                                [contract.contracts[1].type_contract.as_str()]
+                                [(&contract.contracts[1].strike).into()]
+                        ),
+                        order_type: "LMT".to_string(),
+                        listing_exchange: "SMART".to_string(),
+                        outside_rth: false,
+                        price: -1.0 * (contract.arb_val * self.discount_value.unwrap()).round(),
+                        side: "BUY".to_string(),
+                        ticker: "SPX".to_string(),
+                        tif: "DAY".to_string(),
+                        referrer: "NO_REFERRER_PROVIDED".to_string(),
+                        quantity: num_fills,
+                        use_adaptive: false,
+                    });
+                }
+                "Butterfly" => {
+                    request_data.push(OrderBody {
+                        acct_id: self.account_id.clone().unwrap(),
+                        con_idex: format!(
+                            "28812380;;;{}/-2,{},{}",
+                            self.conids_map.as_ref().unwrap()[contract.contracts[1].date.as_str()]
+                                [contract.contracts[1].type_contract.as_str()]
+                                [(&contract.contracts[1].strike).into()],
+                            self.conids_map.as_ref().unwrap()[contract.contracts[0].date.as_str()]
+                                [contract.contracts[0].type_contract.as_str()]
+                                [(&contract.contracts[0].strike).into()],
+                            self.conids_map.as_ref().unwrap()[contract.contracts[2].date.as_str()]
+                                [contract.contracts[2].type_contract.as_str()]
+                                [(&contract.contracts[2].strike).into()]
+                        ),
+                        order_type: "LMT".to_string(),
+                        listing_exchange: "SMART".to_string(),
+                        outside_rth: false,
+                        price: -1.0 * (contract.arb_val * self.discount_value.unwrap()).round(),
+                        side: "BUY".to_string(),
+                        ticker: "SPX".to_string(),
+                        tif: "DAY".to_string(),
+                        referrer: "NO_REFERRER_PROVIDED".to_string(),
+                        quantity: num_fills,
+                        use_adaptive: false,
+                    });
+                }
+                "Boxspread" => {
+                    request_data.push(OrderBody {
+                        acct_id: self.account_id.clone().unwrap(),
+                        con_idex: format!(
+                            "28812380;;;{}/-1,{},{},{}",
+                            self.conids_map.as_ref().unwrap()[contract.contracts[3].date.as_str()]
+                                [contract.contracts[3].type_contract.as_str()]
+                                [(&contract.contracts[3].strike).into()],
+                            self.conids_map.as_ref().unwrap()[contract.contracts[2].date.as_str()]
+                                [contract.contracts[2].type_contract.as_str()]
+                                [(&contract.contracts[2].strike).into()],
+                            self.conids_map.as_ref().unwrap()[contract.contracts[0].date.as_str()]
+                                [contract.contracts[0].type_contract.as_str()]
+                                [(&contract.contracts[0].strike).into()],
+                            self.conids_map.as_ref().unwrap()[contract.contracts[1].date.as_str()]
+                                [contract.contracts[1].type_contract.as_str()]
+                                [(&contract.contracts[1].strike).into()]
+                        ),
+                        order_type: "LMT".to_string(),
+                        listing_exchange: "SMART".to_string(),
+                        outside_rth: false,
+                        price: -1.0
+                            * ((contract.arb_val * self.discount_value.unwrap()) + 5.0).round(),
+                        side: "BUY".to_string(),
+                        ticker: "SPX".to_string(),
+                        tif: "DAY".to_string(),
+                        referrer: "NO_REFERRER_PROVIDED".to_string(),
+                        quantity: num_fills,
+                        use_adaptive: false,
+                    });
+                }
+                _ => {}
+            }
         }
     }
 }
