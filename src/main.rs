@@ -84,14 +84,14 @@ fn main() {
                     Ok(contender_contracts) => {
                         if !contender_contracts.is_empty() {
                             if mode {
-                                //ibkr.order_contender_contracts(&contender_contracts, num_fills);
+                                ibkr.order_contender_contracts(&contender_contracts, num_fills);
                             }
                             for contender in contender_contracts {
                                 println!(
                                     "Submitting Order for {} * {} {} @ {:.2}:",
                                     num_fills,
-                                    &contender.type_spread,
-                                    &contender.exp_date,
+                                    contender.type_spread,
+                                    contender.exp_date,
                                     contender.arb_value()
                                 );
 
@@ -104,8 +104,8 @@ fn main() {
                                             contender.action(i),
                                             contender.multiplier(num_fills, i),
                                             contender.contracts[i].strike as i64,
-                                            &contender.contracts[i].type_contract,
-                                            &contender.contracts[i].date,
+                                            contender.contracts[i].type_contract,
+                                            contender.contracts[i].date,
                                             contender.contracts[i].mkt_price
                                         )
                                     );
