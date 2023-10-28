@@ -21,23 +21,28 @@ mod tests {
         }
 
         // Test when market is definitely closed.
-        let time = extract_datetime(Utc.with_ymd_and_hms(2023, 10, 10, 5, 0, 0)); // 5:00 AM UTC
+        let time: chrono::DateTime<Utc> =
+            extract_datetime(Utc.with_ymd_and_hms(2023, 10, 10, 5, 0, 0)); // 5:00 AM UTC.
         assert_eq!(is_us_stock_market_open(time), false);
 
         // Test right at market open.
-        let time = extract_datetime(Utc.with_ymd_and_hms(2023, 10, 10, 9, 30, 0)); // 9:30 AM UTC
+        let time: chrono::DateTime<Utc> =
+            extract_datetime(Utc.with_ymd_and_hms(2023, 10, 10, 9, 30, 0)); // 9:30 AM UTC.
         assert_eq!(is_us_stock_market_open(time), true);
 
         // Test during open market hours.
-        let time = extract_datetime(Utc.with_ymd_and_hms(2023, 10, 10, 12, 0, 0)); // 12:00 PM UTC
+        let time: chrono::DateTime<Utc> =
+            extract_datetime(Utc.with_ymd_and_hms(2023, 10, 10, 12, 0, 0)); // 12:00 PM UTC.
         assert_eq!(is_us_stock_market_open(time), true);
 
         // Test right at market close.
-        let time = extract_datetime(Utc.with_ymd_and_hms(2023, 10, 10, 15, 15, 0)); // 3:15 PM UTC
+        let time: chrono::DateTime<Utc> =
+            extract_datetime(Utc.with_ymd_and_hms(2023, 10, 10, 15, 15, 0)); // 3:15 PM UTC.
         assert_eq!(is_us_stock_market_open(time), true);
 
         // Test right after market close.
-        let time = extract_datetime(Utc.with_ymd_and_hms(2023, 10, 10, 15, 16, 0)); // 3:16 PM UTC
+        let time: chrono::DateTime<Utc> =
+            extract_datetime(Utc.with_ymd_and_hms(2023, 10, 10, 15, 16, 0)); // 3:16 PM UTC.
         assert_eq!(is_us_stock_market_open(time), false);
     }
 
@@ -75,22 +80,22 @@ mod tests {
     fn test_calc_time_difference() {
         // Test with a difference of 1 day.
         // Current date: 220101, Date: 220102, Expected difference: 1 day.
-        let difference = calc_time_difference("220101", "220102");
+        let difference: i64 = calc_time_difference("220101", "220102");
         assert_eq!(difference, 1);
 
         // Test with a difference of 5 days.
         // Current date: 220101, Date: 220106, Expected difference: 5 days.
-        let difference = calc_time_difference("220101", "220106");
+        let difference: i64 = calc_time_difference("220101", "220106");
         assert_eq!(difference, 5);
 
         // Test with dates being the same.
         // Current date: 220101, Date: 220101, Expected difference: 0 days.
-        let difference = calc_time_difference("220101", "220101");
+        let difference: i64 = calc_time_difference("220101", "220101");
         assert_eq!(difference, 0);
 
         // Test with the current date being later than the date.
         // Current date: 220106, Date: 220101, Expected difference: -5 days.
-        let difference = calc_time_difference("220106", "220101");
+        let difference: i64 = calc_time_difference("220106", "220101");
         assert_eq!(difference, -5);
     }
 
@@ -98,17 +103,17 @@ mod tests {
     fn test_calc_rank_value() {
         // Test with a time difference of 1 day.
         // Current date: 220101, Date: 220102, avg_ask: 10.0, arb_val: 5.0, Expected rank value: 50.0.
-        let rank_value = calc_rank_value(10.0, 5.0, "220101", "220102");
+        let rank_value: f64 = calc_rank_value(10.0, 5.0, "220101", "220102");
         assert!((rank_value - (50.0 / 2.0)).abs() < 1e-9); // Using a small epsilon for floating point comparison.
 
         // Test with a time difference of 5 days.
         // Current date: 220101, Date: 220106, avg_ask: 10.0, arb_val: 5.0, Expected rank value: 12.5.
-        let rank_value = calc_rank_value(10.0, 5.0, "220101", "220106");
+        let rank_value: f64 = calc_rank_value(10.0, 5.0, "220101", "220106");
         assert!((rank_value - (50.0 / 6.0)).abs() < 1e-9);
 
         // Test with dates being the same.
         // Current date: 220101, Date: 220101, avg_ask: 10.0, arb_val: 5.0, Expected rank value: 500.0.
-        let rank_value = calc_rank_value(10.0, 5.0, "220101", "220101");
+        let rank_value: f64 = calc_rank_value(10.0, 5.0, "220101", "220101");
         assert!((rank_value - (50.0 / 1.0)).abs() < 1e-9);
     }
 
@@ -116,22 +121,22 @@ mod tests {
     fn test_convert_date() {
         // Test date conversion for January of 2022.
         // Input date: "220101", Expected converted date: "JAN22".
-        let converted_date = convert_date("220101");
+        let converted_date: String = convert_date("220101");
         assert_eq!(converted_date, "JAN22");
 
         // Test date conversion for December of 2022.
         // Input date: "221231", Expected converted date: "DEC22".
-        let converted_date = convert_date("221231");
+        let converted_date: String = convert_date("221231");
         assert_eq!(converted_date, "DEC22");
 
         // Test date conversion for May of 2022.
         // Input date: "220515", Expected converted date: "MAY22".
-        let converted_date = convert_date("220515");
+        let converted_date: String = convert_date("220515");
         assert_eq!(converted_date, "MAY22");
 
         // Test date conversion for a leap year, February of 2024.
         // Input date: "240229", Expected converted date: "FEB24".
-        let converted_date = convert_date("240229");
+        let converted_date: String = convert_date("240229");
         assert_eq!(converted_date, "FEB24");
     }
 }
