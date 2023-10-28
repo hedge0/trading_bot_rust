@@ -155,12 +155,4 @@ impl Contender {
             num_fills
         }
     }
-
-    pub(crate) fn arb_value(&self) -> f64 {
-        if self.type_spread == "Boxspread" {
-            self.arb_val + 5.0
-        } else {
-            self.arb_val
-        }
-    }
 }

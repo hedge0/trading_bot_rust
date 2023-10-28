@@ -93,7 +93,7 @@ fn main() {
                                     num_fills,
                                     contender.type_spread,
                                     contender.exp_date,
-                                    contender.arb_value()
+                                    contender.arb_val
                                 );
 
                                 for i in 0..contender.contracts.len() {

@@ -5,13 +5,18 @@ mod structs;
 
 #[cfg(test)]
 mod tests {
-    use std::{env, error::Error};
+    use std::{collections::HashMap, env, error::Error};
 
     use chrono::{Datelike, LocalResult, TimeZone, Utc, Weekday};
+    use ordered_float::OrderedFloat;
 
-    use crate::helpers::{
-        calc_final_num_orders, calc_rank_value, calc_time_difference, convert_date,
-        get_dotenv_variable, is_us_stock_market_open, is_weekday,
+    use crate::{
+        helpers::{
+            build_boxspread_order, build_butterfly_order, build_calendar_order,
+            calc_final_num_orders, calc_rank_value, calc_time_difference, convert_date,
+            get_dotenv_variable, is_us_stock_market_open, is_weekday,
+        },
+        structs::{Contender, Contract},
     };
 
     #[test]
@@ -142,6 +147,235 @@ mod tests {
         // Input date: "240229", Expected converted date: "FEB24".
         let converted_date: String = convert_date("240229");
         assert_eq!(converted_date, "FEB24");
+    }
+
+    #[test]
+    fn test_build_calendar_order() {
+        // Mock data setup for the test.
+        let contract: Contender = Contender {
+            type_spread: "Calendar".to_string(), // Specify the spread type for the contender.
+            arb_val: 1.0,                        // Arbitrage value for the contender.
+            contracts: vec![
+                Contract {
+                    date: "2021-11-01".to_string(),
+                    type_contract: "CALL".to_string(),
+                    strike: *OrderedFloat(3000.0),
+                    mkt_price: 12.2,
+                },
+                Contract {
+                    date: "2021-11-02".to_string(),
+                    type_contract: "CALL".to_string(),
+                    strike: *OrderedFloat(3100.0),
+                    mkt_price: 11.2,
+                },
+            ],
+            avg_ask: 3.5,
+            exp_date: "2021-11-01".to_string(),
+            rank_value: 1.75,
+        };
+
+        // Creating a nested map to mock the `conids_map` for the test.
+        let mut inner_map_1: HashMap<String, HashMap<OrderedFloat<f64>, String>> = HashMap::new();
+        inner_map_1.insert("CALL".to_string(), {
+            let mut strike_map: HashMap<OrderedFloat<f64>, String> = HashMap::new();
+            strike_map.insert(OrderedFloat(3000.0), "CONID1".to_string()); // Mapping a strike price to a contract ID.
+            strike_map
+        });
+
+        let mut inner_map_2: HashMap<String, HashMap<OrderedFloat<f64>, String>> = HashMap::new();
+        inner_map_2.insert("CALL".to_string(), {
+            let mut strike_map: HashMap<OrderedFloat<f64>, String> = HashMap::new();
+            strike_map.insert(OrderedFloat(3100.0), "CONID2".to_string()); // Mapping another strike price to a contract ID.
+            strike_map
+        });
+
+        let mut conids_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>> =
+            HashMap::new();
+        conids_map.insert("2021-11-01".to_string(), inner_map_1);
+        conids_map.insert("2021-11-02".to_string(), inner_map_2);
+
+        // Call the function with the mock data to obtain a result.
+        let result: crate::structs::OrderBody = build_calendar_order(
+            &contract,
+            2,
+            &Some("ACCOUNT_ID".to_string()),
+            &Some(conids_map),
+            Some(0.9),
+        );
+
+        // Assertions to verify the correctness of the output.
+        assert_eq!(result.acct_id, "ACCOUNT_ID"); // Ensure the account ID matches the expected value.
+        assert_eq!(result.con_idex, "28812380;;;CONID1/-1,CONID2/1"); // Verify the construction of the contract index string.
+        assert_eq!(result.price, -0.9); // Validate the calculated price.
+        assert_eq!(result.quantity, 2); // Check the order quantity.
+    }
+
+    #[test]
+    fn test_build_butterfly_order() {
+        // Mock data setup for the test.
+        let contract: Contender = Contender {
+            type_spread: "Butterfly".to_string(), // Specify the spread type for the contender.
+            arb_val: 2.0,                         // Arbitrage value for the contender.
+            contracts: vec![
+                Contract {
+                    date: "2021-11-01".to_string(),
+                    type_contract: "CALL".to_string(),
+                    strike: *OrderedFloat(2900.0),
+                    mkt_price: 10.2,
+                },
+                Contract {
+                    date: "2021-11-02".to_string(),
+                    type_contract: "CALL".to_string(),
+                    strike: *OrderedFloat(3000.0),
+                    mkt_price: 11.2,
+                },
+                Contract {
+                    date: "2021-11-03".to_string(),
+                    type_contract: "CALL".to_string(),
+                    strike: *OrderedFloat(3100.0),
+                    mkt_price: 12.2,
+                },
+            ],
+            avg_ask: 4.0,
+            exp_date: "2021-11-03".to_string(),
+            rank_value: 2.5,
+        };
+
+        // Creating a nested map to mock the `conids_map` for the test.
+        let mut inner_map_1: HashMap<String, HashMap<OrderedFloat<f64>, String>> = HashMap::new();
+        inner_map_1.insert("CALL".to_string(), {
+            let mut strike_map: HashMap<OrderedFloat<f64>, String> = HashMap::new();
+            strike_map.insert(OrderedFloat(2900.0), "CONID1".to_string()); // Mapping a strike price to a contract ID.
+            strike_map
+        });
+
+        let mut inner_map_2: HashMap<String, HashMap<OrderedFloat<f64>, String>> = HashMap::new();
+        inner_map_2.insert("CALL".to_string(), {
+            let mut strike_map: HashMap<OrderedFloat<f64>, String> = HashMap::new();
+            strike_map.insert(OrderedFloat(3000.0), "CONID2".to_string()); // Mapping another strike price to a contract ID.
+            strike_map
+        });
+
+        let mut inner_map_3: HashMap<String, HashMap<OrderedFloat<f64>, String>> = HashMap::new();
+        inner_map_3.insert("CALL".to_string(), {
+            let mut strike_map: HashMap<OrderedFloat<f64>, String> = HashMap::new();
+            strike_map.insert(OrderedFloat(3100.0), "CONID3".to_string()); // Mapping yet another strike price to a contract ID.
+            strike_map
+        });
+
+        let mut conids_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>> =
+            HashMap::new();
+        conids_map.insert("2021-11-01".to_string(), inner_map_1);
+        conids_map.insert("2021-11-02".to_string(), inner_map_2);
+        conids_map.insert("2021-11-03".to_string(), inner_map_3);
+
+        // Call the function with the mock data to obtain a result.
+        let result: crate::structs::OrderBody = build_butterfly_order(
+            &contract,
+            3,
+            &Some("ACCOUNT_ID".to_string()),
+            &Some(conids_map),
+            Some(0.95),
+        );
+
+        // Assertions to verify the correctness of the output.
+        assert_eq!(result.acct_id, "ACCOUNT_ID"); // Ensure the account ID matches the expected value.
+        assert_eq!(result.con_idex, "28812380;;;CONID2/-2,CONID1/1,CONID3/1"); // Verify the construction of the contract index string.
+        assert_eq!(result.price, -1.9); // Validate the calculated price.
+        assert_eq!(result.quantity, 3); // Check the order quantity.
+    }
+
+    #[test]
+    fn test_build_boxspread_order() {
+        // Mock data setup for the test.
+        let contract: Contender = Contender {
+            type_spread: "BoxSpread".to_string(), // Specify the spread type for the contender.
+            arb_val: 2.5,                         // Arbitrage value for the contender.
+            contracts: vec![
+                Contract {
+                    date: "2021-11-01".to_string(),
+                    type_contract: "CALL".to_string(),
+                    strike: *OrderedFloat(2800.0),
+                    mkt_price: 9.2,
+                },
+                Contract {
+                    date: "2021-11-02".to_string(),
+                    type_contract: "CALL".to_string(),
+                    strike: *OrderedFloat(2900.0),
+                    mkt_price: 10.2,
+                },
+                Contract {
+                    date: "2021-11-03".to_string(),
+                    type_contract: "PUT".to_string(),
+                    strike: *OrderedFloat(2800.0),
+                    mkt_price: 11.2,
+                },
+                Contract {
+                    date: "2021-11-04".to_string(),
+                    type_contract: "PUT".to_string(),
+                    strike: *OrderedFloat(2900.0),
+                    mkt_price: 12.2,
+                },
+            ],
+            avg_ask: 5.0,
+            exp_date: "2021-11-04".to_string(),
+            rank_value: 3.0,
+        };
+
+        // Creating a nested map to mock the `conids_map` for the test.
+        let mut inner_map_call_1: HashMap<String, HashMap<OrderedFloat<f64>, String>> =
+            HashMap::new();
+        inner_map_call_1.insert("CALL".to_string(), {
+            let mut strike_map: HashMap<OrderedFloat<f64>, String> = HashMap::new();
+            strike_map.insert(OrderedFloat(2800.0), "CONID1".to_string()); // Mapping a strike price to a contract ID.
+            strike_map
+        });
+        let mut inner_map_call_2: HashMap<String, HashMap<OrderedFloat<f64>, String>> =
+            HashMap::new();
+        inner_map_call_2.insert("CALL".to_string(), {
+            let mut strike_map: HashMap<OrderedFloat<f64>, String> = HashMap::new();
+            strike_map.insert(OrderedFloat(2900.0), "CONID2".to_string()); // Mapping another strike price to a contract ID.
+            strike_map
+        });
+        let mut inner_map_put_1: HashMap<String, HashMap<OrderedFloat<f64>, String>> =
+            HashMap::new();
+        inner_map_put_1.insert("PUT".to_string(), {
+            let mut strike_map: HashMap<OrderedFloat<f64>, String> = HashMap::new();
+            strike_map.insert(OrderedFloat(2800.0), "CONID3".to_string()); // Mapping yet another strike price to a contract ID.
+            strike_map
+        });
+        let mut inner_map_put_2: HashMap<String, HashMap<OrderedFloat<f64>, String>> =
+            HashMap::new();
+        inner_map_put_2.insert("PUT".to_string(), {
+            let mut strike_map: HashMap<OrderedFloat<f64>, String> = HashMap::new();
+            strike_map.insert(OrderedFloat(2900.0), "CONID4".to_string()); // Mapping the last strike price to a contract ID.
+            strike_map
+        });
+
+        let mut conids_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>> =
+            HashMap::new();
+        conids_map.insert("2021-11-01".to_string(), inner_map_call_1);
+        conids_map.insert("2021-11-02".to_string(), inner_map_call_2);
+        conids_map.insert("2021-11-03".to_string(), inner_map_put_1);
+        conids_map.insert("2021-11-04".to_string(), inner_map_put_2);
+
+        // Call the function with the mock data to obtain a result.
+        let result: crate::structs::OrderBody = build_boxspread_order(
+            &contract,
+            4,
+            &Some("ACCOUNT_ID".to_string()),
+            &Some(conids_map),
+            Some(0.9),
+        );
+
+        // Assertions to verify the correctness of the output.
+        assert_eq!(result.acct_id, "ACCOUNT_ID"); // Ensure the account ID matches the expected value.
+        assert_eq!(
+            result.con_idex,
+            "28812380;;;CONID4/-1,CONID3/1,CONID1/1,CONID2/-1"
+        ); // Verify the construction of the contract index string.
+        assert_eq!(result.price, -2.25); // Validate the calculated price.
+        assert_eq!(result.quantity, 4); // Check the order quantity.
     }
 
     #[test]

@@ -91,7 +91,7 @@ pub(crate) fn build_calendar_order(
     OrderBody {
         acct_id: account_id.clone().unwrap(),
         con_idex: format!(
-            "28812380;;;{}/-1,{}",
+            "28812380;;;{}/-1,{}/1",
             conids_map.as_ref().unwrap()[contract.contracts[0].date.as_str()]
                 [contract.contracts[0].type_contract.as_str()]
                 [(&contract.contracts[0].strike).into()],
@@ -102,7 +102,7 @@ pub(crate) fn build_calendar_order(
         order_type: "LMT".to_string(),
         listing_exchange: "SMART".to_string(),
         outside_rth: false,
-        price: -1.0 * (contract.arb_val * discount_value.unwrap()).round(),
+        price: -1.0 * ((contract.arb_val * discount_value.unwrap() * 100.0).round() / 100.0),
         side: "BUY".to_string(),
         ticker: "SPX".to_string(),
         tif: "DAY".to_string(),
@@ -123,7 +123,7 @@ pub(crate) fn build_butterfly_order(
     OrderBody {
         acct_id: account_id.clone().unwrap(),
         con_idex: format!(
-            "28812380;;;{}/-2,{},{}",
+            "28812380;;;{}/-2,{}/1,{}/1",
             conids_map.as_ref().unwrap()[contract.contracts[1].date.as_str()]
                 [contract.contracts[1].type_contract.as_str()]
                 [(&contract.contracts[1].strike).into()],
@@ -137,7 +137,7 @@ pub(crate) fn build_butterfly_order(
         order_type: "LMT".to_string(),
         listing_exchange: "SMART".to_string(),
         outside_rth: false,
-        price: -1.0 * (contract.arb_val * discount_value.unwrap()).round(),
+        price: -1.0 * ((contract.arb_val * discount_value.unwrap() * 100.0).round() / 100.0),
         side: "BUY".to_string(),
         ticker: "SPX".to_string(),
         tif: "DAY".to_string(),
@@ -158,7 +158,7 @@ pub(crate) fn build_boxspread_order(
     OrderBody {
         acct_id: account_id.clone().unwrap(),
         con_idex: format!(
-            "28812380;;;{}/-1,{},{},{}",
+            "28812380;;;{}/-1,{}/1,{}/1,{}/-1",
             conids_map.as_ref().unwrap()[contract.contracts[3].date.as_str()]
                 [contract.contracts[3].type_contract.as_str()]
                 [(&contract.contracts[3].strike).into()],
@@ -175,7 +175,7 @@ pub(crate) fn build_boxspread_order(
         order_type: "LMT".to_string(),
         listing_exchange: "SMART".to_string(),
         outside_rth: false,
-        price: -1.0 * ((contract.arb_val * discount_value.unwrap()) + 5.0).round(),
+        price: -1.0 * ((contract.arb_val * discount_value.unwrap() * 100.0).round() / 100.0),
         side: "BUY".to_string(),
         ticker: "SPX".to_string(),
         tif: "DAY".to_string(),
