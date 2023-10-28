@@ -364,7 +364,7 @@ impl ActiveTick {
                                 && next_opt.bid > 0.25
                                 && current_opt.asz > 0.0
                                 && next_opt.asz > 0.0
-                                && calc_time_difference(date, next_date) == 2
+                                && calc_time_difference(date, next_date) == 1
                             {
                                 let avg_ask: f64 = ((current_opt.asz + next_opt.asz) / 2.0).round();
                                 let rank_value: f64 =
