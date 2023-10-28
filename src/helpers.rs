@@ -80,52 +80,6 @@ pub(crate) fn convert_date(input_date: &str) -> String {
     format!("{}{}", month_abbreviation, year_abbreviation)
 }
 
-// Function that builds request data for json body to submit an order.
-pub(crate) fn build_request_data(
-    contender_contracts: &Vec<Contender>,
-    num_fills: i32,
-    account_id: &Option<String>,
-    conids_map: &Option<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>>,
-    discount_value: Option<f64>,
-) -> Vec<OrderBody> {
-    let mut request_data: Vec<OrderBody> = Vec::new();
-
-    for contract in contender_contracts {
-        match contract.type_spread.as_str() {
-            "Calendar" => {
-                request_data.push(build_calendar_order(
-                    contract,
-                    num_fills,
-                    account_id,
-                    conids_map,
-                    discount_value,
-                ));
-            }
-            "Butterfly" => {
-                request_data.push(build_butterfly_order(
-                    contract,
-                    num_fills,
-                    account_id,
-                    conids_map,
-                    discount_value,
-                ));
-            }
-            "Boxspread" => {
-                request_data.push(build_boxspread_order(
-                    contract,
-                    num_fills,
-                    account_id,
-                    conids_map,
-                    discount_value,
-                ));
-            }
-            _ => {}
-        }
-    }
-
-    request_data
-}
-
 // Function that builds calendar order body.
 pub(crate) fn build_calendar_order(
     contract: &Contender,
@@ -229,6 +183,52 @@ pub(crate) fn build_boxspread_order(
         quantity: num_fills,
         use_adaptive: false,
     }
+}
+
+// Function that builds request data for json body to submit an order.
+pub(crate) fn build_request_data(
+    contender_contracts: &Vec<Contender>,
+    num_fills: i32,
+    account_id: &Option<String>,
+    conids_map: &Option<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>>,
+    discount_value: Option<f64>,
+) -> Vec<OrderBody> {
+    let mut request_data: Vec<OrderBody> = Vec::new();
+
+    for contract in contender_contracts {
+        match contract.type_spread.as_str() {
+            "Calendar" => {
+                request_data.push(build_calendar_order(
+                    contract,
+                    num_fills,
+                    account_id,
+                    conids_map,
+                    discount_value,
+                ));
+            }
+            "Butterfly" => {
+                request_data.push(build_butterfly_order(
+                    contract,
+                    num_fills,
+                    account_id,
+                    conids_map,
+                    discount_value,
+                ));
+            }
+            "Boxspread" => {
+                request_data.push(build_boxspread_order(
+                    contract,
+                    num_fills,
+                    account_id,
+                    conids_map,
+                    discount_value,
+                ));
+            }
+            _ => {}
+        }
+    }
+
+    request_data
 }
 
 // Function that gets input and returns result.
