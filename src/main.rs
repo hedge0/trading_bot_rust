@@ -10,6 +10,7 @@ use std::{
 };
 
 use activetick::ActiveTick;
+use chrono::Utc;
 use helpers::{
     calc_final_num_orders, get_api_key, get_discount_value, get_dotenv_variable, get_fill_type,
     get_mode, get_option, get_password, get_seconds_to_sleep, get_username,
@@ -60,7 +61,7 @@ fn main() {
     }
 
     loop {
-        if is_us_stock_market_open() && is_weekday() || !mode {
+        if is_us_stock_market_open(Utc::now()) && is_weekday() || !mode {
             if mode {
                 match ibkr.get_portfolio_value() {
                     Ok(portfolio_val) => {
