@@ -127,7 +127,7 @@ pub(crate) fn build_request_data(
 }
 
 // Function that builds calendar order body.
-fn build_calendar_order(
+pub(crate) fn build_calendar_order(
     contract: &Contender,
     num_fills: i32,
     account_id: &Option<String>,
@@ -159,7 +159,7 @@ fn build_calendar_order(
 }
 
 // Function that builds calendar order body.
-fn build_butterfly_order(
+pub(crate) fn build_butterfly_order(
     contract: &Contender,
     num_fills: i32,
     account_id: &Option<String>,
@@ -194,7 +194,7 @@ fn build_butterfly_order(
 }
 
 // Function that builds calendar order body.
-fn build_boxspread_order(
+pub(crate) fn build_boxspread_order(
     contract: &Contender,
     num_fills: i32,
     account_id: &Option<String>,
