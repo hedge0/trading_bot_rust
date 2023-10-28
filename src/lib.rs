@@ -144,7 +144,7 @@ mod tests {
 
     #[test]
     fn test_get_dotenv_variable() {
-        // Mock the environment variable
+        // Mock the environment variable.
         env::set_var("TEST_KEY", "test_value");
 
         // Check if the function retrieves the value correctly.
@@ -152,10 +152,10 @@ mod tests {
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), "test_value".to_string());
 
-        // Clean up (optional but good practice)
+        // Clean up (optional but good practice).
         env::remove_var("TEST_KEY");
 
-        // Test with a non-existent key
+        // Test with a non-existent key.
         let result: Result<String, Box<dyn Error>> = get_dotenv_variable("NON_EXISTENT_KEY");
         assert!(result.is_err());
     }
