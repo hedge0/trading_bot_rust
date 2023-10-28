@@ -12,7 +12,7 @@ mod tests {
 
     #[test]
     fn test_is_us_stock_market_open() {
-        // Function to safely extract DateTime from LocalResult
+        // Function to safely extract DateTime from LocalResult.
         fn extract_datetime(result: LocalResult<chrono::DateTime<Utc>>) -> chrono::DateTime<Utc> {
             match result {
                 LocalResult::Single(dt) => dt,
@@ -99,8 +99,7 @@ mod tests {
         // Test with a time difference of 1 day.
         // Current date: 220101, Date: 220102, avg_ask: 10.0, arb_val: 5.0, Expected rank value: 50.0.
         let rank_value = calc_rank_value(10.0, 5.0, "220101", "220102");
-
-        assert!((rank_value - (50.0 / 2.0)).abs() < 1e-9); // Using a small epsilon for floating point comparison
+        assert!((rank_value - (50.0 / 2.0)).abs() < 1e-9); // Using a small epsilon for floating point comparison.
 
         // Test with a time difference of 5 days.
         // Current date: 220101, Date: 220106, avg_ask: 10.0, arb_val: 5.0, Expected rank value: 12.5.
