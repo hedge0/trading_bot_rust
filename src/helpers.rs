@@ -61,12 +61,12 @@ pub(crate) fn calc_time_difference(current_date: &str, date: &str) -> i64 {
     let current_time: NaiveDate = NaiveDate::parse_from_str(current_date, "%y%m%d").unwrap();
     let future_time: NaiveDate = NaiveDate::parse_from_str(date, "%y%m%d").unwrap();
 
-    (((current_time - future_time).num_hours() as f64 / 24.0 * -1.0) + 1.0) as i64
+    ((current_time - future_time).num_hours() as f64 / 24.0 * -1.0) as i64
 }
 
 // Function that returns the rank value for a contract.
 pub(crate) fn calc_rank_value(avg_ask: f64, arb_val: f64, current_date: &str, date: &str) -> f64 {
-    let difference: i64 = calc_time_difference(current_date, date);
+    let difference: i64 = calc_time_difference(current_date, date) + 1;
     (avg_ask * arb_val) / (difference as f64)
 }
 
