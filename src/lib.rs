@@ -3,11 +3,13 @@ mod helpers;
 
 #[cfg(test)]
 mod tests {
+    use std::{env, error::Error};
+
     use chrono::{Datelike, LocalResult, TimeZone, Utc, Weekday};
 
     use crate::helpers::{
         calc_final_num_orders, calc_rank_value, calc_time_difference, convert_date,
-        is_us_stock_market_open, is_weekday,
+        get_dotenv_variable, is_us_stock_market_open, is_weekday,
     };
 
     #[test]
@@ -138,5 +140,23 @@ mod tests {
         // Input date: "240229", Expected converted date: "FEB24".
         let converted_date: String = convert_date("240229");
         assert_eq!(converted_date, "FEB24");
+    }
+
+    #[test]
+    fn test_get_dotenv_variable() {
+        // Mock the environment variable
+        env::set_var("TEST_KEY", "test_value");
+
+        // Check if the function retrieves the value correctly.
+        let result: Result<String, Box<dyn Error>> = get_dotenv_variable("TEST_KEY");
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "test_value".to_string());
+
+        // Clean up (optional but good practice)
+        env::remove_var("TEST_KEY");
+
+        // Test with a non-existent key
+        let result: Result<String, Box<dyn Error>> = get_dotenv_variable("NON_EXISTENT_KEY");
+        assert!(result.is_err());
     }
 }
