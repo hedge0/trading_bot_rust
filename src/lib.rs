@@ -1,5 +1,7 @@
 #[allow(dead_code)]
 mod helpers;
+#[allow(dead_code)]
+mod structs;
 
 #[cfg(test)]
 mod tests {
