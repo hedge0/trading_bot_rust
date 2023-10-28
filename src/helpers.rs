@@ -2,14 +2,12 @@ use chrono::{Datelike, NaiveDate, Timelike, Utc, Weekday};
 use dotenv::dotenv;
 use std::{env, error::Error, io};
 
-pub(crate) fn is_us_stock_market_open() -> bool {
+// Function that checks if the stock market is currently open.
+pub(crate) fn is_us_stock_market_open(current_time: chrono::DateTime<Utc>) -> bool {
     let market_open_hour: u32 = 9;
     let market_open_minute: u32 = 30;
     let market_close_hour: u32 = 15;
-    let market_close_minute: u32 = 55;
-
-    let current_time: chrono::DateTime<Utc> = Utc::now();
-    println!("{:?}", current_time);
+    let market_close_minute: u32 = 15;
 
     let current_hour: u32 = current_time.hour();
     let current_minute: u32 = current_time.minute();
@@ -79,12 +77,7 @@ pub(crate) fn convert_date(input_date: &str) -> String {
     format!("{}{}", month_abbreviation, year_abbreviation)
 }
 
-// Function that checks if a string exists in a Vec of strings.
-fn _string_exists_in_slice(target: &str, slice: &[String]) -> bool {
-    slice.contains(&target.to_string())
-}
-
-// Function that gets input and retruns result
+// Function that gets input and returns result.
 fn get_user_input(prompt: &str) -> String {
     let mut input: String = String::new();
     println!("{}", prompt);
@@ -103,7 +96,7 @@ pub(crate) fn get_dotenv_variable(key: &str) -> Result<String, Box<dyn Error>> {
     }
 }
 
-// Function that gets username
+// Function that gets username.
 pub(crate) fn get_username() -> String {
     match get_dotenv_variable("USER_NAME") {
         Ok(val) => val,
@@ -111,7 +104,7 @@ pub(crate) fn get_username() -> String {
     }
 }
 
-// Function that gets password
+// Function that gets password.
 pub(crate) fn get_password() -> String {
     match get_dotenv_variable("PASSWORD") {
         Ok(val) => val,
@@ -119,7 +112,7 @@ pub(crate) fn get_password() -> String {
     }
 }
 
-// Function that gets API key
+// Function that gets API key.
 pub(crate) fn get_api_key() -> String {
     match get_dotenv_variable("API_KEY") {
         Ok(val) => val,
@@ -127,7 +120,7 @@ pub(crate) fn get_api_key() -> String {
     }
 }
 
-// Function that gets option for contracts to look for
+// Function that gets option for contracts to look for.
 pub(crate) fn get_option() -> String {
     match get_dotenv_variable("OPTION") {
         Ok(val) => val,
@@ -149,7 +142,7 @@ DEFAULT for Calendar + Butterfly + Boxspread
     }
 }
 
-// Function that gets fill type
+// Function that gets fill type.
 pub(crate) fn get_fill_type() -> String {
     match get_dotenv_variable("FILL_TYPE") {
         Ok(val) => val,
@@ -168,7 +161,7 @@ DEFAULT for multiple orders, multiple fills
     }
 }
 
-// Function that gets mode
+// Function that gets mode.
 pub(crate) fn get_mode() -> bool {
     match get_dotenv_variable("TEST_MODE") {
         Ok(val) => val.to_lowercase() != "yes" && val.to_lowercase() != "y",
@@ -180,7 +173,7 @@ pub(crate) fn get_mode() -> bool {
     }
 }
 
-// Function that gets seconds to wait before cancelling and trying again
+// Function that gets seconds to wait before cancelling and trying again.
 pub(crate) fn get_seconds_to_sleep() -> u64 {
     match get_dotenv_variable("SECONDS_TO_SLEEP") {
         Ok(val) => {
@@ -219,7 +212,7 @@ pub(crate) fn get_seconds_to_sleep() -> u64 {
     }
 }
 
-// Function that gets discount value
+// Function that gets discount value.
 pub(crate) fn get_discount_value() -> f64 {
     match get_dotenv_variable("DISCOUNT_VALUE") {
         Ok(val) => match val.parse::<f64>() {

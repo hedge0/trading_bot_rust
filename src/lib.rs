@@ -3,11 +3,43 @@ mod helpers;
 
 #[cfg(test)]
 mod tests {
-    use chrono::{Datelike, Utc, Weekday};
+    use chrono::{Datelike, LocalResult, TimeZone, Utc, Weekday};
 
     use crate::helpers::{
-        calc_final_num_orders, calc_rank_value, calc_time_difference, is_weekday,
+        calc_final_num_orders, calc_rank_value, calc_time_difference, convert_date,
+        is_us_stock_market_open, is_weekday,
     };
+
+    #[test]
+    fn test_is_us_stock_market_open() {
+        // Function to safely extract DateTime from LocalResult
+        fn extract_datetime(result: LocalResult<chrono::DateTime<Utc>>) -> chrono::DateTime<Utc> {
+            match result {
+                LocalResult::Single(dt) => dt,
+                _ => panic!("Invalid date/time provided."),
+            }
+        }
+
+        // Test when market is definitely closed.
+        let time = extract_datetime(Utc.with_ymd_and_hms(2023, 10, 10, 5, 0, 0)); // 5:00 AM UTC
+        assert_eq!(is_us_stock_market_open(time), false);
+
+        // Test right at market open.
+        let time = extract_datetime(Utc.with_ymd_and_hms(2023, 10, 10, 9, 30, 0)); // 9:30 AM UTC
+        assert_eq!(is_us_stock_market_open(time), true);
+
+        // Test during open market hours.
+        let time = extract_datetime(Utc.with_ymd_and_hms(2023, 10, 10, 12, 0, 0)); // 12:00 PM UTC
+        assert_eq!(is_us_stock_market_open(time), true);
+
+        // Test right at market close.
+        let time = extract_datetime(Utc.with_ymd_and_hms(2023, 10, 10, 15, 15, 0)); // 3:15 PM UTC
+        assert_eq!(is_us_stock_market_open(time), true);
+
+        // Test right after market close.
+        let time = extract_datetime(Utc.with_ymd_and_hms(2023, 10, 10, 15, 16, 0)); // 3:16 PM UTC
+        assert_eq!(is_us_stock_market_open(time), false);
+    }
 
     #[test]
     fn test_is_weekday() {
@@ -79,5 +111,28 @@ mod tests {
         // Current date: 220101, Date: 220101, avg_ask: 10.0, arb_val: 5.0, Expected rank value: 500.0.
         let rank_value = calc_rank_value(10.0, 5.0, "220101", "220101");
         assert!((rank_value - (50.0 / 1.0)).abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_convert_date() {
+        // Test date conversion for January of 2022.
+        // Input date: "220101", Expected converted date: "JAN22".
+        let converted_date = convert_date("220101");
+        assert_eq!(converted_date, "JAN22");
+
+        // Test date conversion for December of 2022.
+        // Input date: "221231", Expected converted date: "DEC22".
+        let converted_date = convert_date("221231");
+        assert_eq!(converted_date, "DEC22");
+
+        // Test date conversion for May of 2022.
+        // Input date: "220515", Expected converted date: "MAY22".
+        let converted_date = convert_date("220515");
+        assert_eq!(converted_date, "MAY22");
+
+        // Test date conversion for a leap year, February of 2024.
+        // Input date: "240229", Expected converted date: "FEB24".
+        let converted_date = convert_date("240229");
+        assert_eq!(converted_date, "FEB24");
     }
 }
