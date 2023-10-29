@@ -379,16 +379,16 @@ pub(crate) fn build_boxspread_order(
         acct_id: account_id.clone().unwrap(),
         con_idex: format!(
             "28812380;;;{}/-1,{}/1,{}/1,{}/-1",
-            conids_map.as_ref().unwrap()[contract.contracts[3].date.as_str()]
+            conids_map.as_ref().unwrap()[contract.contracts[3].date.as_str()] // Short right dated Put.
                 [contract.contracts[3].type_contract.as_str()]
                 [(&contract.contracts[3].strike).into()],
-            conids_map.as_ref().unwrap()[contract.contracts[2].date.as_str()]
+            conids_map.as_ref().unwrap()[contract.contracts[2].date.as_str()] // Long right dated Call.
                 [contract.contracts[2].type_contract.as_str()]
                 [(&contract.contracts[2].strike).into()],
-            conids_map.as_ref().unwrap()[contract.contracts[0].date.as_str()]
+            conids_map.as_ref().unwrap()[contract.contracts[0].date.as_str()] // Long current dated Put.
                 [contract.contracts[0].type_contract.as_str()]
                 [(&contract.contracts[0].strike).into()],
-            conids_map.as_ref().unwrap()[contract.contracts[1].date.as_str()]
+            conids_map.as_ref().unwrap()[contract.contracts[1].date.as_str()] // Short current dated Call.
                 [contract.contracts[1].type_contract.as_str()]
                 [(&contract.contracts[1].strike).into()]
         ),
@@ -664,9 +664,9 @@ pub(crate) fn get_boxspread_contenders(
                             .ok_or("Error accessing right put contract")?;
 
                         let arb_val: f64 =
-                            (current_c.mkt + right_p.mkt) - (current_p.mkt + right_c.mkt);
+                            (current_p.mkt + right_c.mkt) - (current_c.mkt + right_p.mkt);
 
-                        if arb_val > 0.15
+                        if arb_val < -5.15
                             && current_c.bid > 1.0
                             && current_p.bid > 1.0
                             && right_c.bid > 1.0
@@ -681,11 +681,15 @@ pub(crate) fn get_boxspread_contenders(
                             let avg_ask: f64 =
                                 ((current_c.asz + right_c.asz + current_p.asz + right_p.asz) / 4.0)
                                     .round();
-                            let rank_value: f64 =
-                                calc_rank_value(avg_ask, arb_val, &current_date, date);
+                            let rank_value: f64 = calc_rank_value(
+                                avg_ask,
+                                (-1.0 * arb_val) - 5.0,
+                                &current_date,
+                                date,
+                            );
 
                             contender_contracts.push(Contender {
-                                arb_val: (arb_val * 100.0).round() / 100.0,
+                                arb_val: (-1.0 * arb_val * 100.0).round() / 100.0,
                                 avg_ask,
                                 type_spread: "Boxspread".to_string(),
                                 exp_date: date.clone(),
