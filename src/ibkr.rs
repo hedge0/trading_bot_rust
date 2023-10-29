@@ -10,7 +10,7 @@ use std::{
 };
 
 use crate::{
-    helpers::{build_request_data, convert_date},
+    helpers::{build_request_data, generate_conids_structure, generate_months_slice},
     structs::{
         AccountResponse, Contender, OrderBody, PortfolioResponse, SecDefInfoResponse,
         SecDefResponse,
@@ -159,38 +159,8 @@ impl IBKR {
     ) -> Result<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>, Box<dyn Error>>
     {
         let mut conids_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>> =
-            HashMap::new();
-        let mut months_slice: Vec<String> = Vec::new();
-
-        for date in dates_slice {
-            conids_map.insert(
-                date.clone(),
-                ["C", "P"]
-                    .iter()
-                    .map(|&opt_type| {
-                        let strikes: Vec<f64> = strike_slice
-                            .get(date)
-                            .and_then(|m| m.get(opt_type))
-                            .cloned()
-                            .unwrap_or_else(Vec::new);
-                        (
-                            opt_type.to_string(),
-                            strikes
-                                .into_iter()
-                                .map(|s| (OrderedFloat(s), String::new()))
-                                .collect(),
-                        )
-                    })
-                    .collect(),
-            );
-        }
-
-        for date in dates_slice {
-            let formatted_date: String = convert_date(date);
-            if !months_slice.contains(&formatted_date) {
-                months_slice.push(formatted_date);
-            }
-        }
+            generate_conids_structure(dates_slice, strike_slice);
+        let months_slice: Vec<String> = generate_months_slice(dates_slice);
 
         for month in months_slice {
             let search_url: String = format!(
