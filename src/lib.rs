@@ -237,13 +237,13 @@ mod tests {
             contracts: vec![
                 Contract {
                     date: "2021-11-01".to_string(),
-                    type_contract: "CALL".to_string(),
+                    type_contract: "C".to_string(),
                     strike: *OrderedFloat(3000.0),
                     mkt_price: 12.2,
                 },
                 Contract {
                     date: "2021-11-02".to_string(),
-                    type_contract: "CALL".to_string(),
+                    type_contract: "C".to_string(),
                     strike: *OrderedFloat(3100.0),
                     mkt_price: 11.2,
                 },
@@ -255,14 +255,14 @@ mod tests {
 
         // Creating a nested map to mock the `conids_map` for the test.
         let mut inner_map_1: HashMap<String, HashMap<OrderedFloat<f64>, String>> = HashMap::new();
-        inner_map_1.insert("CALL".to_string(), {
+        inner_map_1.insert("C".to_string(), {
             let mut strike_map: HashMap<OrderedFloat<f64>, String> = HashMap::new();
             strike_map.insert(OrderedFloat(3000.0), "CONID1".to_string()); // Mapping a strike price to a contract ID.
             strike_map
         });
 
         let mut inner_map_2: HashMap<String, HashMap<OrderedFloat<f64>, String>> = HashMap::new();
-        inner_map_2.insert("CALL".to_string(), {
+        inner_map_2.insert("C".to_string(), {
             let mut strike_map: HashMap<OrderedFloat<f64>, String> = HashMap::new();
             strike_map.insert(OrderedFloat(3100.0), "CONID2".to_string()); // Mapping another strike price to a contract ID.
             strike_map
@@ -298,19 +298,19 @@ mod tests {
             contracts: vec![
                 Contract {
                     date: "2021-11-01".to_string(),
-                    type_contract: "CALL".to_string(),
+                    type_contract: "C".to_string(),
                     strike: *OrderedFloat(2900.0),
                     mkt_price: 10.2,
                 },
                 Contract {
                     date: "2021-11-02".to_string(),
-                    type_contract: "CALL".to_string(),
+                    type_contract: "C".to_string(),
                     strike: *OrderedFloat(3000.0),
                     mkt_price: 11.2,
                 },
                 Contract {
                     date: "2021-11-03".to_string(),
-                    type_contract: "CALL".to_string(),
+                    type_contract: "C".to_string(),
                     strike: *OrderedFloat(3100.0),
                     mkt_price: 12.2,
                 },
@@ -322,21 +322,21 @@ mod tests {
 
         // Creating a nested map to mock the `conids_map` for the test.
         let mut inner_map_1: HashMap<String, HashMap<OrderedFloat<f64>, String>> = HashMap::new();
-        inner_map_1.insert("CALL".to_string(), {
+        inner_map_1.insert("C".to_string(), {
             let mut strike_map: HashMap<OrderedFloat<f64>, String> = HashMap::new();
             strike_map.insert(OrderedFloat(2900.0), "CONID1".to_string()); // Mapping a strike price to a contract ID.
             strike_map
         });
 
         let mut inner_map_2: HashMap<String, HashMap<OrderedFloat<f64>, String>> = HashMap::new();
-        inner_map_2.insert("CALL".to_string(), {
+        inner_map_2.insert("C".to_string(), {
             let mut strike_map: HashMap<OrderedFloat<f64>, String> = HashMap::new();
             strike_map.insert(OrderedFloat(3000.0), "CONID2".to_string()); // Mapping another strike price to a contract ID.
             strike_map
         });
 
         let mut inner_map_3: HashMap<String, HashMap<OrderedFloat<f64>, String>> = HashMap::new();
-        inner_map_3.insert("CALL".to_string(), {
+        inner_map_3.insert("C".to_string(), {
             let mut strike_map: HashMap<OrderedFloat<f64>, String> = HashMap::new();
             strike_map.insert(OrderedFloat(3100.0), "CONID3".to_string()); // Mapping yet another strike price to a contract ID.
             strike_map
@@ -373,25 +373,25 @@ mod tests {
             contracts: vec![
                 Contract {
                     date: "2021-11-01".to_string(),
-                    type_contract: "CALL".to_string(),
+                    type_contract: "C".to_string(),
                     strike: *OrderedFloat(2800.0),
                     mkt_price: 9.2,
                 },
                 Contract {
                     date: "2021-11-02".to_string(),
-                    type_contract: "CALL".to_string(),
+                    type_contract: "C".to_string(),
                     strike: *OrderedFloat(2900.0),
                     mkt_price: 10.2,
                 },
                 Contract {
                     date: "2021-11-03".to_string(),
-                    type_contract: "PUT".to_string(),
+                    type_contract: "P".to_string(),
                     strike: *OrderedFloat(2800.0),
                     mkt_price: 11.2,
                 },
                 Contract {
                     date: "2021-11-04".to_string(),
-                    type_contract: "PUT".to_string(),
+                    type_contract: "P".to_string(),
                     strike: *OrderedFloat(2900.0),
                     mkt_price: 12.2,
                 },
@@ -404,28 +404,28 @@ mod tests {
         // Creating a nested map to mock the `conids_map` for the test.
         let mut inner_map_call_1: HashMap<String, HashMap<OrderedFloat<f64>, String>> =
             HashMap::new();
-        inner_map_call_1.insert("CALL".to_string(), {
+        inner_map_call_1.insert("C".to_string(), {
             let mut strike_map: HashMap<OrderedFloat<f64>, String> = HashMap::new();
             strike_map.insert(OrderedFloat(2800.0), "CONID1".to_string()); // Mapping a strike price to a contract ID.
             strike_map
         });
         let mut inner_map_call_2: HashMap<String, HashMap<OrderedFloat<f64>, String>> =
             HashMap::new();
-        inner_map_call_2.insert("CALL".to_string(), {
+        inner_map_call_2.insert("C".to_string(), {
             let mut strike_map: HashMap<OrderedFloat<f64>, String> = HashMap::new();
             strike_map.insert(OrderedFloat(2900.0), "CONID2".to_string()); // Mapping another strike price to a contract ID.
             strike_map
         });
         let mut inner_map_put_1: HashMap<String, HashMap<OrderedFloat<f64>, String>> =
             HashMap::new();
-        inner_map_put_1.insert("PUT".to_string(), {
+        inner_map_put_1.insert("P".to_string(), {
             let mut strike_map: HashMap<OrderedFloat<f64>, String> = HashMap::new();
             strike_map.insert(OrderedFloat(2800.0), "CONID3".to_string()); // Mapping yet another strike price to a contract ID.
             strike_map
         });
         let mut inner_map_put_2: HashMap<String, HashMap<OrderedFloat<f64>, String>> =
             HashMap::new();
-        inner_map_put_2.insert("PUT".to_string(), {
+        inner_map_put_2.insert("P".to_string(), {
             let mut strike_map: HashMap<OrderedFloat<f64>, String> = HashMap::new();
             strike_map.insert(OrderedFloat(2900.0), "CONID4".to_string()); // Mapping the last strike price to a contract ID.
             strike_map
@@ -460,7 +460,7 @@ mod tests {
     #[test]
     fn test_get_calendar_contenders() {
         // Mock data setup for the test.
-        let dates_slice: Vec<String> = vec!["210101".to_string(), "210201".to_string()];
+        let dates_slice: Vec<String> = vec!["210101".to_string(), "210102".to_string()];
 
         let mut strike_slice: HashMap<String, HashMap<String, Vec<f64>>> = HashMap::new();
         strike_slice.insert("210101".to_string(), {
@@ -468,7 +468,7 @@ mod tests {
             map.insert("C".to_string(), vec![100.0]);
             map
         });
-        strike_slice.insert("210201".to_string(), {
+        strike_slice.insert("210102".to_string(), {
             let mut map: HashMap<String, Vec<f64>> = HashMap::new();
             map.insert("C".to_string(), vec![100.0]);
             map
@@ -483,25 +483,25 @@ mod tests {
                 inner_map.insert(
                     OrderedFloat(100.0),
                     Opt {
-                        mkt: 1.2,
-                        bid: 0.3,
-                        asz: 10.0,
+                        mkt: 2.2,
+                        bid: 1.3,
+                        asz: 8.0,
                     },
                 );
                 inner_map
             });
             map
         });
-        contracts_map.insert("210201".to_string(), {
+        contracts_map.insert("210102".to_string(), {
             let mut map: HashMap<String, HashMap<OrderedFloat<f64>, Opt>> = HashMap::new();
             map.insert("C".to_string(), {
                 let mut inner_map: HashMap<OrderedFloat<f64>, Opt> = HashMap::new();
                 inner_map.insert(
                     OrderedFloat(100.0),
                     Opt {
-                        mkt: 0.9,
-                        bid: 0.3,
-                        asz: 10.0,
+                        mkt: 1.9,
+                        bid: 1.3,
+                        asz: 12.0,
                     },
                 );
                 inner_map
@@ -544,7 +544,7 @@ mod tests {
                     Opt {
                         mkt: 2.1,
                         bid: 1.3,
-                        asz: 10.0,
+                        asz: 8.0,
                     },
                 );
                 inner_map.insert(
@@ -560,7 +560,7 @@ mod tests {
                     Opt {
                         mkt: 2.2,
                         bid: 1.3,
-                        asz: 10.0,
+                        asz: 12.0,
                     },
                 );
                 inner_map
@@ -602,17 +602,17 @@ mod tests {
                 inner_map.insert(
                     OrderedFloat(95.0),
                     Opt {
-                        mkt: 1.1,
-                        bid: 0.3,
-                        asz: 10.0,
+                        mkt: 1.4,
+                        bid: 1.3,
+                        asz: 8.0,
                     },
                 );
                 inner_map.insert(
                     OrderedFloat(100.0),
                     Opt {
                         mkt: 2.1,
-                        bid: 0.3,
-                        asz: 10.0,
+                        bid: 1.3,
+                        asz: 12.0,
                     },
                 );
                 inner_map
@@ -623,16 +623,16 @@ mod tests {
                     OrderedFloat(95.0),
                     Opt {
                         mkt: 1.5,
-                        bid: 0.3,
-                        asz: 10.0,
+                        bid: 1.3,
+                        asz: 12.0,
                     },
                 );
                 inner_map.insert(
                     OrderedFloat(100.0),
                     Opt {
                         mkt: 2.5,
-                        bid: 0.3,
-                        asz: 10.0,
+                        bid: 1.3,
+                        asz: 8.0,
                     },
                 );
                 inner_map
@@ -646,7 +646,7 @@ mod tests {
 
         // Assertions
         assert_eq!(result.len(), 1);
-        assert_eq!(result[0].arb_val, -5.0); // (1.1 + 2.5) - (1.5 + 2.1) - 5.0
+        assert_eq!(result[0].arb_val, 0.3); // (1.4 + 2.5) - (1.5 + 2.1)
         assert_eq!(result[0].avg_ask, 10.0);
         assert_eq!(result[0].type_spread, "Boxspread");
         assert_eq!(result[0].exp_date, "210101");
