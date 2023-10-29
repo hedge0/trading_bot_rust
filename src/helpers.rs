@@ -664,7 +664,7 @@ pub(crate) fn get_boxspread_contenders(
                             .ok_or("Error accessing right put contract")?;
 
                         let arb_val: f64 =
-                            (current_c.mkt + right_p.mkt) - (current_p.mkt + right_c.mkt) - 5.0;
+                            (current_c.mkt + right_p.mkt) - (current_p.mkt + right_c.mkt);
 
                         if arb_val > 0.15
                             && current_c.bid > 1.0
