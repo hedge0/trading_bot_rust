@@ -86,7 +86,7 @@ impl IBKR {
         }
     }
 
-    // Function that sends a GET request for portfolio ID
+    // Function that sends a GET request for portfolio ID.
     fn get_account_id(&self) -> Result<String, Box<dyn Error>> {
         let search_url: String = format!(
             "{}/v1/api/portfolio/accounts",
@@ -116,7 +116,7 @@ impl IBKR {
         }
     }
 
-    // Function that sends a GET request for SPX ID
+    // Function that sends a GET request for SPX ID.
     fn get_spx_conid(&self) -> Result<String, Box<dyn Error>> {
         let search_url: String = format!(
             "{}/v1/api/iserver/secdef/search?symbol=SPX",
@@ -151,7 +151,7 @@ impl IBKR {
         exit(1);
     }
 
-    // Function that gets a list of conids for all relevant contracts
+    // Function that gets a list of conids for all relevant contracts.
     fn get_conids_map(
         &self,
         dates_slice: &[String],
@@ -205,7 +205,7 @@ impl IBKR {
         Ok(conids_map)
     }
 
-    // Function that sends a GET request for portfolio value
+    // Function that sends a GET request for portfolio value.
     pub(crate) fn get_portfolio_value(&self) -> Result<f64, Box<dyn Error>> {
         let search_url: String = format!(
             "{}/v1/api/portfolio/{}/summary",
@@ -231,7 +231,7 @@ impl IBKR {
         Ok(search_results.equity_with_loan_value.amount)
     }
 
-    // Function that cancels all submitted and presubmitted orders
+    // Function that cancels all submitted and presubmitted orders.
     pub(crate) fn cancel_pending_orders(&mut self) {
         println!("Cancelling all pending limit orders");
 
@@ -253,7 +253,7 @@ impl IBKR {
         sleep(Duration::from_secs(1));
     }
 
-    // Function that cancels a single order
+    // Function that cancels a single order.
     fn cancel_order(&self, order_id: &str) -> Result<String, Box<dyn Error>> {
         let cancel_order_url: String = format!(
             "{}/v1/api/iserver/account/{}/order/{}",
@@ -285,7 +285,7 @@ impl IBKR {
         }
     }
 
-    // Function that makes orders all contender contracts
+    // Function that makes orders all contender contracts.
     pub(crate) fn order_contender_contracts(
         &self,
         contender_contracts: &Vec<Contender>,
