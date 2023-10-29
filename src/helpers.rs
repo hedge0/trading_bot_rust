@@ -17,7 +17,7 @@ fn get_user_input(prompt: &str) -> String {
 
 // Function that uses dotenv to load/read the .env file and return the value of the key.
 pub(crate) fn get_dotenv_variable(key: &str) -> Result<String, Box<dyn Error>> {
-    dotenv()?; // Load the .env file
+    dotenv()?; // Load the .env file.
     match env::var(key) {
         Ok(value) => Ok(value),
         Err(e) => Err(Box::new(e)),
