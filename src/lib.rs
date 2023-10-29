@@ -369,7 +369,7 @@ mod tests {
         // Mock data setup for the test.
         let contract: Contender = Contender {
             type_spread: "BoxSpread".to_string(), // Specify the spread type for the contender.
-            arb_val: 2.5,                         // Arbitrage value for the contender.
+            arb_val: 6.0,                         // Arbitrage value for the contender.
             contracts: vec![
                 Contract {
                     date: "2021-11-01".to_string(),
@@ -453,7 +453,7 @@ mod tests {
             result.con_idex,
             "28812380;;;CONID4/-1,CONID3/1,CONID1/1,CONID2/-1"
         ); // Verify the construction of the contract index string.
-        assert_eq!(result.price, -2.25); // Validate the calculated price.
+        assert_eq!(result.price, -5.90); // Validate the calculated price.
         assert_eq!(result.quantity, 4); // Check the order quantity.
     }
 
@@ -465,12 +465,12 @@ mod tests {
         let mut strike_slice: HashMap<String, HashMap<String, Vec<f64>>> = HashMap::new();
         strike_slice.insert("210101".to_string(), {
             let mut map: HashMap<String, Vec<f64>> = HashMap::new();
-            map.insert("C".to_string(), vec![100.0]);
+            map.insert("C".to_string(), vec![4500.0]);
             map
         });
         strike_slice.insert("210102".to_string(), {
             let mut map: HashMap<String, Vec<f64>> = HashMap::new();
-            map.insert("C".to_string(), vec![100.0]);
+            map.insert("C".to_string(), vec![4500.0]);
             map
         });
 
@@ -481,10 +481,10 @@ mod tests {
             map.insert("C".to_string(), {
                 let mut inner_map: HashMap<OrderedFloat<f64>, Opt> = HashMap::new();
                 inner_map.insert(
-                    OrderedFloat(100.0),
+                    OrderedFloat(4500.0),
                     Opt {
-                        mkt: 2.2,
-                        bid: 1.3,
+                        mkt: 382.30,
+                        bid: 373.80,
                         asz: 8.0,
                     },
                 );
@@ -497,10 +497,10 @@ mod tests {
             map.insert("C".to_string(), {
                 let mut inner_map: HashMap<OrderedFloat<f64>, Opt> = HashMap::new();
                 inner_map.insert(
-                    OrderedFloat(100.0),
+                    OrderedFloat(4500.0),
                     Opt {
-                        mkt: 1.9,
-                        bid: 1.3,
+                        mkt: 381.20,
+                        bid: 371.40,
                         asz: 12.0,
                     },
                 );
@@ -515,7 +515,7 @@ mod tests {
 
         // Assertions.
         assert_eq!(result.len(), 1);
-        assert_eq!(result[0].arb_val, 0.3);
+        assert_eq!(result[0].arb_val, 1.10);
         assert_eq!(result[0].avg_ask, 10.0);
         assert_eq!(result[0].type_spread, "Calendar");
         assert_eq!(result[0].exp_date, "210101");
