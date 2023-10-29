@@ -535,6 +535,7 @@ pub(crate) fn get_calendar_contenders(
     Ok(contender_contracts)
 }
 
+// TODO
 fn _black_scholes(s: f64, k: f64, t: f64, r: f64, sigma: f64, option_type: &str) -> f64 {
     let normal: Normal = Normal::new(0.0, 1.0).unwrap();
     let d1: f64 = (f64::ln(s / k) + (r + 0.5 * sigma.powi(2)) * t) / (sigma * t.sqrt());
@@ -547,6 +548,7 @@ fn _black_scholes(s: f64, k: f64, t: f64, r: f64, sigma: f64, option_type: &str)
     }
 }
 
+// TODO
 fn _parse_date_to_duration(date_str: &str) -> f64 {
     let current_date: SystemTime = SystemTime::now();
 
@@ -574,6 +576,7 @@ fn _parse_date_to_duration(date_str: &str) -> f64 {
         / (365.0 * 24.0 * 3600.0)
 }
 
+// TODO
 fn _calendar_spread_risk_free_profit(
     option_type: &str,
     far_strike: f64,
