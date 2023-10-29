@@ -588,8 +588,8 @@ mod tests {
         let mut strike_slice: HashMap<String, HashMap<String, Vec<f64>>> = HashMap::new();
         strike_slice.insert("210101".to_string(), {
             let mut map: HashMap<String, Vec<f64>> = HashMap::new();
-            map.insert("C".to_string(), vec![95.0, 100.0]);
-            map.insert("P".to_string(), vec![95.0, 100.0]);
+            map.insert("C".to_string(), vec![4090.0, 4095.0]);
+            map.insert("P".to_string(), vec![4090.0, 4095.0]);
             map
         });
 
@@ -600,18 +600,18 @@ mod tests {
             map.insert("C".to_string(), {
                 let mut inner_map: HashMap<OrderedFloat<f64>, Opt> = HashMap::new();
                 inner_map.insert(
-                    OrderedFloat(95.0),
+                    OrderedFloat(4090.0),
                     Opt {
-                        mkt: 1.4,
-                        bid: 1.3,
+                        mkt: 59.80,
+                        bid: 58.10,
                         asz: 8.0,
                     },
                 );
                 inner_map.insert(
-                    OrderedFloat(100.0),
+                    OrderedFloat(4095.0),
                     Opt {
-                        mkt: 2.1,
-                        bid: 1.3,
+                        mkt: 55.50,
+                        bid: 54.60,
                         asz: 12.0,
                     },
                 );
@@ -620,18 +620,18 @@ mod tests {
             map.insert("P".to_string(), {
                 let mut inner_map: HashMap<OrderedFloat<f64>, Opt> = HashMap::new();
                 inner_map.insert(
-                    OrderedFloat(95.0),
+                    OrderedFloat(4090.0),
                     Opt {
-                        mkt: 1.5,
-                        bid: 1.3,
+                        mkt: 28.50,
+                        bid: 27.80,
                         asz: 12.0,
                     },
                 );
                 inner_map.insert(
-                    OrderedFloat(100.0),
+                    OrderedFloat(4095.0),
                     Opt {
-                        mkt: 2.5,
-                        bid: 1.3,
+                        mkt: 30.35,
+                        bid: 29.60,
                         asz: 8.0,
                     },
                 );
@@ -646,7 +646,7 @@ mod tests {
 
         // Assertions.
         assert_eq!(result.len(), 1);
-        assert_eq!(result[0].arb_val, 0.3); // (1.4 + 2.5) - (1.5 + 2.1).
+        assert_eq!(result[0].arb_val, 6.15); // (1.4 + 2.5) - (1.5 + 2.1).
         assert_eq!(result[0].avg_ask, 10.0);
         assert_eq!(result[0].type_spread, "Boxspread");
         assert_eq!(result[0].exp_date, "210101");
