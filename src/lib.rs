@@ -572,9 +572,9 @@ mod tests {
         let result: Vec<Contender> =
             get_butterfly_contenders(&contracts_map, &dates_slice, &strike_slice).unwrap();
 
-        // Assertions
+        // Assertions.
         assert_eq!(result.len(), 1);
-        assert_eq!(result[0].arb_val, 0.3); // 2 * 2.3 (center) - (2.1 (left) + 2.2 (right))
+        assert_eq!(result[0].arb_val, 0.3); // 2 * 2.3 (center) - (2.1 (left) + 2.2 (right)).
         assert_eq!(result[0].avg_ask, 10.0);
         assert_eq!(result[0].type_spread, "Butterfly");
         assert_eq!(result[0].exp_date, "210101");
@@ -644,9 +644,9 @@ mod tests {
         let result: Vec<Contender> =
             get_boxspread_contenders(&contracts_map, &dates_slice, &strike_slice).unwrap();
 
-        // Assertions
+        // Assertions.
         assert_eq!(result.len(), 1);
-        assert_eq!(result[0].arb_val, 0.3); // (1.4 + 2.5) - (1.5 + 2.1)
+        assert_eq!(result[0].arb_val, 0.3); // (1.4 + 2.5) - (1.5 + 2.1).
         assert_eq!(result[0].avg_ask, 10.0);
         assert_eq!(result[0].type_spread, "Boxspread");
         assert_eq!(result[0].exp_date, "210101");
