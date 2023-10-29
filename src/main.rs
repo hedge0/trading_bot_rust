@@ -120,7 +120,7 @@ fn main() {
                     }
                 }
 
-                // Record the current time after running the program
+                // Record the current time after running the program.
                 let elapsed_time: Duration = start_time.elapsed();
                 println!("Total time taken: {:?}", elapsed_time);
             } else {
@@ -128,7 +128,7 @@ fn main() {
                 break;
             }
 
-            // Sleep to avoid throttling resources
+            // Sleep to avoid throttling resources.
             println!("");
             println!("Sleeping for {} seconds...", seconds_to_sleep);
             sleep(Duration::from_secs(seconds_to_sleep));

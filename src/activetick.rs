@@ -74,7 +74,7 @@ impl ActiveTick {
         Ok(())
     }
 
-    // Function that returns datesSlice
+    // Function that returns datesSlice.
     pub(crate) fn get_dates_slice(&self) -> Vec<String> {
         match &self.dates_slice {
             Some(dates) => dates.clone(),
@@ -85,7 +85,7 @@ impl ActiveTick {
         }
     }
 
-    // Function that returns strikeSlice
+    // Function that returns strikeSlice.
     pub(crate) fn get_strike_slice(&self) -> HashMap<String, HashMap<String, Vec<f64>>> {
         match &self.strike_slice {
             Some(strikes) => strikes.clone(),
@@ -96,7 +96,7 @@ impl ActiveTick {
         }
     }
 
-    // Function that checks if the user is authorized to use the Activetick API, and returns a sessionID if ok
+    // Function that checks if the user is authorized to use the Activetick API, and returns a sessionID if ok.
     fn get_session_id(&self) -> Result<String, Box<dyn Error>> {
         let auth_url: &str = "https://api.activetick.com/authorize.json";
 
@@ -140,7 +140,7 @@ impl ActiveTick {
         exit(1);
     }
 
-    // Function that sends a GET request for SPX data, and then gets dates and strikes
+    // Function that sends a GET request for SPX data, and then gets dates and strikes.
     fn get_spx_dates_and_strikes(
         &self,
         session_id: &str,
@@ -153,7 +153,7 @@ impl ActiveTick {
     > {
         let chain_url: &str = "https://api.activetick.com/chain.json";
         let current_time: chrono::DateTime<Local> = chrono::Local::now();
-        let future_time: chrono::DateTime<Local> = current_time + self.num_days.unwrap_or_default(); // handle None case
+        let future_time: chrono::DateTime<Local> = current_time + self.num_days.unwrap_or_default(); // handle None case.
         let formatted_time: String = current_time.format("%Y-%m-%dT%H:%M:%S").to_string();
         let formatted_future_time: String = future_time.format("%Y-%m-%dT%H:%M:%S").to_string();
 
@@ -234,7 +234,7 @@ impl ActiveTick {
         return Ok((Some(dates_slice), Some(strike_slice)));
     }
 
-    // Function that sends a GET request for SPX data, and then parses the response
+    // Function that sends a GET request for SPX data, and then parses the response.
     fn get_spx_data(
         &self,
         session_id: &str,
@@ -321,7 +321,7 @@ impl ActiveTick {
         return Ok(contracts_map);
     }
 
-    // Function that returns a slice of the top arbs given the number of orders
+    // Function that returns a slice of the top arbs given the number of orders.
     pub(crate) fn get_contender_contracts(
         &self,
         option: &str,
