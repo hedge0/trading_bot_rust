@@ -494,7 +494,7 @@ pub(crate) fn get_calendar_contenders(
                                 calc_rank_value(avg_ask, arb_val, &current_date, date);
 
                             contender_contracts.push(Contender {
-                                arb_val,
+                                arb_val: (arb_val * 100.0).round() / 100.0,
                                 avg_ask,
                                 type_spread: "Calendar".to_string(),
                                 exp_date: date.clone(),
@@ -583,7 +583,7 @@ pub(crate) fn get_butterfly_contenders(
                                     calc_rank_value(avg_ask, arb_val, &current_date, date);
 
                                 contender_contracts.push(Contender {
-                                    arb_val,
+                                    arb_val: (arb_val * 100.0).round() / 100.0,
                                     avg_ask,
                                     type_spread: "Butterfly".to_string(),
                                     exp_date: date.clone(),
@@ -685,7 +685,7 @@ pub(crate) fn get_boxspread_contenders(
                                 calc_rank_value(avg_ask, arb_val, &current_date, date);
 
                             contender_contracts.push(Contender {
-                                arb_val,
+                                arb_val: (arb_val * 100.0).round() / 100.0,
                                 avg_ask,
                                 type_spread: "Boxspread".to_string(),
                                 exp_date: date.clone(),
