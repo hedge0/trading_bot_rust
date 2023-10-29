@@ -287,7 +287,7 @@ impl ActiveTick {
                     (&code[0..6], &code[6..7], &code[7..(code.len() - 3)])
                 };
 
-                let strike = OrderedFloat(
+                let strike: OrderedFloat<f64> = OrderedFloat(
                     strike_str
                         .parse::<f64>()
                         .map_err(|_| "Failed to parse strike")?,
@@ -297,7 +297,7 @@ impl ActiveTick {
                 let asz_val: f64 = row.data[2].v.parse().map_err(|_| "Failed to parse asz")?;
                 let mkt_val: f64 = ((bid + ask) / 2.0 * 100.0).round() / 100.0;
 
-                let type_map = contracts_map
+                let type_map: &mut HashMap<String, HashMap<OrderedFloat<f64>, Opt>> = contracts_map
                     .entry(exp_date.to_string())
                     .or_insert_with(|| {
                         let mut m: HashMap<String, HashMap<OrderedFloat<f64>, Opt>> =

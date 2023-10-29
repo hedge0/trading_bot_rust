@@ -18,7 +18,7 @@ mod tests {
             get_butterfly_contenders, get_calendar_contenders, get_dotenv_variable,
             is_us_stock_market_open, is_weekday,
         },
-        structs::{Contender, Contract, Opt},
+        structs::{Contender, Contract, Opt, OrderBody},
     };
 
     #[test]
@@ -274,7 +274,7 @@ mod tests {
         conids_map.insert("2021-11-02".to_string(), inner_map_2);
 
         // Call the function with the mock data to obtain a result.
-        let result: crate::structs::OrderBody = build_calendar_order(
+        let result: OrderBody = build_calendar_order(
             &contract,
             2,
             &Some("ACCOUNT_ID".to_string()),
@@ -349,7 +349,7 @@ mod tests {
         conids_map.insert("2021-11-03".to_string(), inner_map_3);
 
         // Call the function with the mock data to obtain a result.
-        let result: crate::structs::OrderBody = build_butterfly_order(
+        let result: OrderBody = build_butterfly_order(
             &contract,
             3,
             &Some("ACCOUNT_ID".to_string()),
@@ -439,7 +439,7 @@ mod tests {
         conids_map.insert("2021-11-04".to_string(), inner_map_put_2);
 
         // Call the function with the mock data to obtain a result.
-        let result: crate::structs::OrderBody = build_boxspread_order(
+        let result: OrderBody = build_boxspread_order(
             &contract,
             4,
             &Some("ACCOUNT_ID".to_string()),
