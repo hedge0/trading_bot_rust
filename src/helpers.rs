@@ -80,6 +80,54 @@ pub(crate) fn convert_date(input_date: &str) -> String {
     format!("{}{}", month_abbreviation, year_abbreviation)
 }
 
+// Function that inits the conids map to have a proper structure for later.
+pub(crate) fn generate_conids_structure(
+    dates_slice: &[String],
+    strike_slice: &HashMap<String, HashMap<String, Vec<f64>>>,
+) -> HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>> {
+    let mut conids_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>> =
+        HashMap::new();
+
+    for date in dates_slice {
+        conids_map.insert(
+            date.clone(),
+            ["C", "P"]
+                .iter()
+                .map(|&opt_type| {
+                    let strikes: Vec<f64> = strike_slice
+                        .get(date)
+                        .and_then(|m| m.get(opt_type))
+                        .cloned()
+                        .unwrap_or_else(Vec::new);
+                    (
+                        opt_type.to_string(),
+                        strikes
+                            .into_iter()
+                            .map(|s| (OrderedFloat(s), String::new()))
+                            .collect(),
+                    )
+                })
+                .collect(),
+        );
+    }
+
+    conids_map
+}
+
+// Function that inits the months slice with the correct string formats for later when called into the api endpoint.
+pub(crate) fn generate_months_slice(dates_slice: &[String]) -> Vec<String> {
+    let mut months_slice: Vec<String> = Vec::new();
+
+    for date in dates_slice {
+        let formatted_date: String = convert_date(date);
+        if !months_slice.contains(&formatted_date) {
+            months_slice.push(formatted_date);
+        }
+    }
+
+    months_slice
+}
+
 // Function that builds calendar order body.
 pub(crate) fn build_calendar_order(
     contract: &Contender,

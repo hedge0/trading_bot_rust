@@ -14,7 +14,8 @@ mod tests {
         helpers::{
             build_boxspread_order, build_butterfly_order, build_calendar_order,
             calc_final_num_orders, calc_rank_value, calc_time_difference, convert_date,
-            get_dotenv_variable, is_us_stock_market_open, is_weekday,
+            generate_conids_structure, generate_months_slice, get_dotenv_variable,
+            is_us_stock_market_open, is_weekday,
         },
         structs::{Contender, Contract},
     };
@@ -147,6 +148,65 @@ mod tests {
         // Input date: "240229", Expected converted date: "FEB24".
         let converted_date: String = convert_date("240229");
         assert_eq!(converted_date, "FEB24");
+    }
+
+    #[test]
+    fn test_generate_conids_structure() {
+        // Mock data setup for the test.
+        let dates_slice: Vec<String> = vec!["2021-11-01".to_string(), "2021-11-02".to_string()];
+
+        let mut strike_data_for_date1: HashMap<String, Vec<f64>> = HashMap::new();
+        strike_data_for_date1.insert("C".to_string(), vec![3000.0, 3100.0]);
+        strike_data_for_date1.insert("P".to_string(), vec![2900.0, 2800.0]);
+
+        let mut strike_data_for_date2: HashMap<String, Vec<f64>> = HashMap::new();
+        strike_data_for_date2.insert("C".to_string(), vec![3050.0, 3150.0]);
+        strike_data_for_date2.insert("P".to_string(), vec![2950.0, 2850.0]);
+
+        let mut strike_slice: HashMap<String, HashMap<String, Vec<f64>>> = HashMap::new();
+        strike_slice.insert("2021-11-01".to_string(), strike_data_for_date1);
+        strike_slice.insert("2021-11-02".to_string(), strike_data_for_date2);
+
+        // Call the function with the mock data.
+        let result: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>> =
+            generate_conids_structure(&dates_slice, &strike_slice);
+
+        // Assertions to verify the structure of the result.
+        assert!(result.contains_key("2021-11-01"));
+        assert!(result["2021-11-01"].contains_key("C"));
+        assert!(result["2021-11-01"]["C"].contains_key(&OrderedFloat(3000.0)));
+        assert!(result["2021-11-01"]["C"].contains_key(&OrderedFloat(3100.0)));
+        assert!(result["2021-11-01"].contains_key("P"));
+        assert!(result["2021-11-01"]["P"].contains_key(&OrderedFloat(2900.0)));
+        assert!(result["2021-11-01"]["P"].contains_key(&OrderedFloat(2800.0)));
+
+        assert!(result.contains_key("2021-11-02"));
+        assert!(result["2021-11-02"].contains_key("C"));
+        assert!(result["2021-11-02"]["C"].contains_key(&OrderedFloat(3050.0)));
+        assert!(result["2021-11-02"]["C"].contains_key(&OrderedFloat(3150.0)));
+        assert!(result["2021-11-02"].contains_key("P"));
+        assert!(result["2021-11-02"]["P"].contains_key(&OrderedFloat(2950.0)));
+        assert!(result["2021-11-02"]["P"].contains_key(&OrderedFloat(2850.0)));
+    }
+
+    #[test]
+    fn test_generate_months_slice() {
+        // Mock data setup for the test.
+        let dates_slice: Vec<String> = vec![
+            "211101".to_string(),
+            "211102".to_string(),
+            "211201".to_string(),
+            "211202".to_string(),
+            "211101".to_string(), // Intentionally adding duplicate for uniqueness check.
+        ];
+
+        // Call the function with the mock data.
+        let result: Vec<String> = generate_months_slice(&dates_slice);
+
+        // Assertions to verify the structure of the result.
+        assert_eq!(result.len(), 2);
+        assert_eq!(result[0], "NOV21");
+        assert_eq!(result[1], "DEC21");
     }
 
     #[test]
