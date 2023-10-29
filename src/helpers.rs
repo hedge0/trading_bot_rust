@@ -483,8 +483,8 @@ pub(crate) fn get_calendar_contenders(
                         let arb_val: f64 = current_opt.mkt - next_opt.mkt;
 
                         if arb_val > 0.15
-                            && current_opt.bid > 0.25
-                            && next_opt.bid > 0.25
+                            && current_opt.bid > 1.0
+                            && next_opt.bid > 1.0
                             && current_opt.asz > 0.0
                             && next_opt.asz > 0.0
                             && calc_time_difference(date, next_date) == 1
@@ -565,9 +565,9 @@ pub(crate) fn get_butterfly_contenders(
                                 - (left_contract.mkt + right_contract.mkt);
 
                             if arb_val > 0.15
-                                && left_contract.bid > 0.25
-                                && right_contract.bid > 0.25
-                                && current_contract.bid > 0.25
+                                && left_contract.bid > 1.0
+                                && right_contract.bid > 1.0
+                                && current_contract.bid > 1.0
                                 && left_contract.asz > 0.0
                                 && right_contract.asz > 0.0
                                 && current_contract.asz > 0.0
@@ -667,10 +667,10 @@ pub(crate) fn get_boxspread_contenders(
                             (current_c.mkt + right_p.mkt) - (current_p.mkt + right_c.mkt) - 5.0;
 
                         if arb_val > 0.15
-                            && current_c.bid > 0.25
-                            && current_p.bid > 0.25
-                            && right_c.bid > 0.25
-                            && right_p.bid > 0.25
+                            && current_c.bid > 1.0
+                            && current_p.bid > 1.0
+                            && right_c.bid > 1.0
+                            && right_p.bid > 1.0
                             && current_c.asz > 0.0
                             && current_p.asz > 0.0
                             && right_c.asz > 0.0

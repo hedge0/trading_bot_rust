@@ -542,24 +542,24 @@ mod tests {
                 inner_map.insert(
                     OrderedFloat(95.0),
                     Opt {
-                        mkt: 1.1,
-                        bid: 0.3,
+                        mkt: 2.1,
+                        bid: 1.3,
                         asz: 10.0,
                     },
                 );
                 inner_map.insert(
                     OrderedFloat(100.0),
                     Opt {
-                        mkt: 1.3,
-                        bid: 0.3,
+                        mkt: 2.3,
+                        bid: 1.3,
                         asz: 10.0,
                     },
                 );
                 inner_map.insert(
                     OrderedFloat(105.0),
                     Opt {
-                        mkt: 1.2,
-                        bid: 0.3,
+                        mkt: 2.2,
+                        bid: 1.3,
                         asz: 10.0,
                     },
                 );
@@ -574,7 +574,7 @@ mod tests {
 
         // Assertions
         assert_eq!(result.len(), 1);
-        assert_eq!(result[0].arb_val, 0.3); // 2 * 1.3 (center) - (1.1 (left) + 1.2 (right))
+        assert_eq!(result[0].arb_val, 0.3); // 2 * 2.3 (center) - (2.1 (left) + 2.2 (right))
         assert_eq!(result[0].avg_ask, 10.0);
         assert_eq!(result[0].type_spread, "Butterfly");
         assert_eq!(result[0].exp_date, "210101");
