@@ -1,14 +1,7 @@
-use chrono::{Datelike, Local, NaiveDate, NaiveDateTime, Timelike, Utc, Weekday};
+use chrono::{Datelike, Local, NaiveDate, Timelike, Utc, Weekday};
 use dotenv::dotenv;
 use ordered_float::OrderedFloat;
-use statrs::distribution::{Normal, Univariate};
-use std::{
-    collections::HashMap,
-    env,
-    error::Error,
-    io,
-    time::{Duration, SystemTime, UNIX_EPOCH},
-};
+use std::{collections::HashMap, env, error::Error, io};
 
 use crate::structs::{Contender, Contract, Opt, OrderBody};
 
@@ -493,12 +486,13 @@ pub(crate) fn get_calendar_contenders(
                     if let Some(next_opt) = next_opt {
                         let arb_val: f64 = current_opt.mkt - next_opt.mkt;
 
-                        if arb_val > 0.15
+                        if arb_val > 0.5
                             && current_opt.bid > 1.0
                             && next_opt.bid > 1.0
                             && current_opt.asz > 0.0
                             && next_opt.asz > 0.0
                             && calc_time_difference(date, next_date) == 1
+                            && calendar_spread_risk_free_profit(strike, arb_val)
                         {
                             let avg_ask: f64 = ((current_opt.asz + next_opt.asz) / 2.0).round();
                             let rank_value: f64 =
@@ -535,72 +529,10 @@ pub(crate) fn get_calendar_contenders(
     Ok(contender_contracts)
 }
 
-// TODO
-fn _black_scholes(s: f64, k: f64, t: f64, r: f64, sigma: f64, option_type: &str) -> f64 {
-    let normal: Normal = Normal::new(0.0, 1.0).unwrap();
-    let d1: f64 = (f64::ln(s / k) + (r + 0.5 * sigma.powi(2)) * t) / (sigma * t.sqrt());
-    let d2: f64 = d1 - sigma * t.sqrt();
-
-    match option_type {
-        "C" => s * normal.cdf(d1) - k * (r * t).exp() * normal.cdf(d2),
-        "P" => k * (-r * t).exp() * normal.cdf(-d2) - s * normal.cdf(-d1),
-        _ => panic!("Invalid option type!"),
-    }
-}
-
-// TODO
-fn _parse_date_to_duration(date_str: &str) -> f64 {
-    let current_date: SystemTime = SystemTime::now();
-
-    // Parse the YYMMDD string into a SystemTime
-    let year: u32 = 2000 + date_str[..2].parse::<u32>().unwrap();
-    let month: u32 = date_str[2..4].parse::<u32>().unwrap();
-    let day: u32 = date_str[4..6].parse::<u32>().unwrap();
-
-    // Use from_ymd_opt() and and_hms_opt() and handle potential None values
-    let parsed_date: NaiveDateTime = match NaiveDate::from_ymd_opt(year as i32, month, day) {
-        Some(date) => match date.and_hms_opt(16, 0, 0) {
-            Some(datetime) => datetime,
-            None => panic!("Invalid time!"),
-        },
-        None => panic!("Invalid date!"),
-    };
-
-    let duration_since_epoch: Duration = Duration::new(parsed_date.timestamp() as u64, 0);
-    let date_as_systemtime: SystemTime = UNIX_EPOCH + duration_since_epoch;
-
-    current_date
-        .duration_since(date_as_systemtime)
-        .unwrap()
-        .as_secs() as f64
-        / (365.0 * 24.0 * 3600.0)
-}
-
-// TODO
-fn _calendar_spread_risk_free_profit(
-    option_type: &str,
-    far_strike: f64,
-    near_price: f64,
-    far_price: f64,
-    near_exp_str: &str,
-    s: f64,
-    r: f64,
-    sigma: f64,
-) -> bool {
-    let t: f64 = _parse_date_to_duration(near_exp_str);
-
-    let intrinsic_value: f64 = match option_type {
-        "P" => (far_strike - s).max(0.0),
-        "C" => (s - far_strike).max(0.0),
-        _ => panic!("Invalid option type!"),
-    };
-
-    let extrinsic_value_at_near_exp: f64 =
-        _black_scholes(s, far_strike, t, r, sigma, option_type) - intrinsic_value;
-
-    let net_credit: f64 = near_price - far_price;
-
-    net_credit > 0.0 && (intrinsic_value + extrinsic_value_at_near_exp) < net_credit
+// Function that predicts max callie loss.
+pub(crate) fn calendar_spread_risk_free_profit(strike: &f64, arb_val: f64) -> bool {
+    let max_loss: f64 = (strike / 200.0) * 0.03;
+    (arb_val - max_loss) > 0.15
 }
 
 // Function that returns a slice of the top butterfly arbs.
