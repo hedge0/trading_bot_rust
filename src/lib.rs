@@ -244,7 +244,7 @@ mod tests {
                 Contract {
                     date: "2021-11-02".to_string(),
                     type_contract: "C".to_string(),
-                    strike: *OrderedFloat(3100.0),
+                    strike: *OrderedFloat(3000.0),
                     mkt_price: 11.2,
                 },
             ],
@@ -264,7 +264,7 @@ mod tests {
         let mut inner_map_2: HashMap<String, HashMap<OrderedFloat<f64>, String>> = HashMap::new();
         inner_map_2.insert("C".to_string(), {
             let mut strike_map: HashMap<OrderedFloat<f64>, String> = HashMap::new();
-            strike_map.insert(OrderedFloat(3100.0), "CONID2".to_string()); // Mapping another strike price to a contract ID.
+            strike_map.insert(OrderedFloat(3000.0), "CONID2".to_string()); // Mapping another strike price to a contract ID.
             strike_map
         });
 
@@ -285,7 +285,7 @@ mod tests {
         // Assertions to verify the correctness of the output.
         assert_eq!(result.acct_id, "ACCOUNT_ID"); // Ensure the account ID matches the expected value.
         assert_eq!(result.con_idex, "28812380;;;CONID1/-1,CONID2/1"); // Verify the construction of the contract index string.
-        assert_eq!(result.price, -0.9); // Validate the calculated price.
+        assert_eq!(result.price, -0.95); // Validate the calculated price.
         assert_eq!(result.quantity, 2); // Check the order quantity.
     }
 
