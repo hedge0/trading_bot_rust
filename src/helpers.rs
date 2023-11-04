@@ -310,6 +310,9 @@ pub(crate) fn build_calendar_order(
     conids_map: &Option<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>>,
     discount_value: Option<f64>,
 ) -> OrderBody {
+    let arb_val: f64 =
+        calendar_spread_risk_free_profit(&contract.contracts[0].strike, contract.arb_val);
+    let max_loss: f64 = contract.arb_val - arb_val;
     OrderBody {
         acct_id: account_id.clone().unwrap(),
         con_idex: format!(
@@ -324,7 +327,7 @@ pub(crate) fn build_calendar_order(
         order_type: "LMT".to_string(),
         listing_exchange: "SMART".to_string(),
         outside_rth: false,
-        price: -1.0 * ((contract.arb_val * discount_value.unwrap() * 100.0).round() / 100.0),
+        price: -1.0 * ((((arb_val * discount_value.unwrap()) + max_loss) * 100.0).round() / 100.0),
         side: "BUY".to_string(),
         ticker: "SPX".to_string(),
         tif: "DAY".to_string(),
@@ -492,7 +495,7 @@ pub(crate) fn get_calendar_contenders(
                             && current_opt.asz > 0.0
                             && next_opt.asz > 0.0
                             && calc_time_difference(date, next_date) == 1
-                            && calendar_spread_risk_free_profit(strike, arb_val)
+                            && calendar_spread_risk_free_profit(strike, arb_val) > 0.15
                         {
                             let avg_ask: f64 = ((current_opt.asz + next_opt.asz) / 2.0).round();
                             let rank_value: f64 =
@@ -530,9 +533,9 @@ pub(crate) fn get_calendar_contenders(
 }
 
 // Function that predicts max callie loss.
-pub(crate) fn calendar_spread_risk_free_profit(strike: &f64, arb_val: f64) -> bool {
+pub(crate) fn calendar_spread_risk_free_profit(strike: &f64, arb_val: f64) -> f64 {
     let max_loss: f64 = (strike / 200.0) * 0.03;
-    (arb_val - max_loss) > 0.15
+    arb_val - max_loss
 }
 
 // Function that returns a slice of the top butterfly arbs.
