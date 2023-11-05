@@ -1,7 +1,15 @@
-use chrono::{Datelike, Local, NaiveDate, Timelike, Utc, Weekday};
+use chrono::{DateTime, Datelike, Local, NaiveDate, Timelike, Utc, Weekday};
 use dotenv::dotenv;
 use ordered_float::OrderedFloat;
-use std::{collections::HashMap, env, error::Error, io};
+use std::{
+    collections::HashMap,
+    env,
+    error::Error,
+    fs::OpenOptions,
+    io::{stdin, Write},
+    path::Path,
+    process::exit,
+};
 
 use crate::structs::{Contender, Contract, Opt, OrderBody};
 
@@ -9,9 +17,7 @@ use crate::structs::{Contender, Contract, Opt, OrderBody};
 fn get_user_input(prompt: &str) -> String {
     let mut input: String = String::new();
     println!("{}", prompt);
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Failed to read line");
+    stdin().read_line(&mut input).expect("Failed to read line");
     input.trim().to_string()
 }
 
@@ -175,6 +181,43 @@ pub(crate) fn get_discount_value() -> f64 {
             }
         }
     }
+}
+
+// Function that logs a message to text file.
+fn log_to_file<P: AsRef<Path>>(path: P, message: &str) -> std::io::Result<()> {
+    let mut file: std::fs::File = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .append(true)
+        .open(path)?;
+
+    writeln!(file, "{}", message)?; // Writes the message and a newline character.
+
+    Ok(())
+}
+
+// Function that logs a message.
+pub(crate) fn log_message(status: String) {
+    let now: DateTime<Utc> = Utc::now();
+    let formatted_now: String = now.format("%Y-%m-%d %H:%M:%S%.9f UTC").to_string();
+    let message: String = format!("{}   {}", formatted_now, status);
+    println!("{}", message);
+    if !cfg!(test) {
+        let _ = log_to_file("log.txt", &message);
+    }
+}
+
+// Function that logs an error message.
+pub(crate) fn log_error(error: String) {
+    let now: DateTime<Utc> = Utc::now();
+    let formatted_now: String = now.format("%Y-%m-%d %H:%M:%S%.9f UTC").to_string();
+    let err_message: String = format!("{}   Error: {}.", formatted_now, error);
+    eprintln!("{}", err_message);
+    if !cfg!(test) {
+        let _ = log_to_file("log.txt", &err_message);
+    }
+    log_message(format!("Exiting..."));
+    exit(1);
 }
 
 // Function that checks if the stock market is currently open.
