@@ -1,5 +1,9 @@
 use ordered_float::OrderedFloat;
-use reqwest::blocking::{Client, ClientBuilder, Response};
+use reqwest::{
+    blocking::{Client, ClientBuilder, Response},
+    header::CONTENT_TYPE,
+};
+use serde_json::Value;
 use std::{
     collections::HashMap,
     error::Error,
@@ -15,7 +19,7 @@ use crate::{
         log_message,
     },
     structs::{
-        AccountResponse, Contender, OrderBody, PortfolioResponse, SecDefInfoResponse,
+        AccountResponse, Confirmation, Contender, OrderBody, PortfolioResponse, SecDefInfoResponse,
         SecDefResponse,
     },
 };
@@ -300,22 +304,94 @@ impl IBKR {
 
     // Function that makes orders all contender contracts.
     pub(crate) fn order_contender_contracts(
-        &self,
+        &mut self,
         contender_contracts: &Vec<Contender>,
         num_fills: i32,
-    ) {
-        let _order_url: String = format!(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let order_url: String = format!(
             "{}/v1/api/iserver/account/{}/orders",
             self.base_url.as_ref().unwrap(),
             self.account_id.as_ref().unwrap()
         );
 
-        let _request_data: Vec<OrderBody> = build_request_data(
+        let request_data: Vec<OrderBody> = build_request_data(
             contender_contracts,
             num_fills,
             &self.account_id,
             &self.conids_map,
             self.discount_value,
         );
+
+        // Serialize the request data to JSON, handle possible serialization error.
+        let json_data: Vec<u8> = serde_json::to_vec(&request_data)?;
+
+        // Make the post request with the serialized JSON data.
+        let response: Response = self
+            .client
+            .as_ref()
+            .ok_or("Client is not initialized")?
+            .post(&order_url)
+            .header(CONTENT_TYPE, "application/json")
+            .header("Connection", "keep-alive")
+            .header("User-Agent", "trading_bot_rust/1.0")
+            .body(json_data)
+            .send()?;
+
+        if !response.status().is_success() {
+            log_error(format!(
+                "{}\nBody: {:?}",
+                response.status(),
+                response.text()?
+            ));
+            exit(1);
+        }
+
+        let mut generic_responses: Vec<Value> = response.json()?;
+
+        loop {
+            if let Some(confirm_id) = generic_responses[0]["id"].as_str() {
+                let confirm_url = format!(
+                    "{}/v1/api/iserver/reply/{}",
+                    self.base_url.as_ref().unwrap(),
+                    confirm_id
+                );
+                let confirm_data: Confirmation = Confirmation { confirmed: true };
+
+                let json_data_confirm: Vec<u8> = serde_json::to_vec(&confirm_data)?;
+                let confirm_response: Response = self
+                    .client
+                    .as_ref()
+                    .ok_or("Client is not initialized")?
+                    .post(&confirm_url)
+                    .header(CONTENT_TYPE, "application/json")
+                    .header("Connection", "keep-alive")
+                    .header("User-Agent", "trading_bot_rust/1.0")
+                    .body(json_data_confirm)
+                    .send()?;
+
+                if confirm_response.status().is_success() {
+                    generic_responses = confirm_response.json()?;
+                } else {
+                    log_error(format!(
+                        "{}\nBody: {:?}",
+                        confirm_response.status(),
+                        confirm_response.text()?
+                    ));
+                    exit(1);
+                }
+            } else if generic_responses[0].get("order_id").is_some() {
+                if let Some(live_orders) = &mut self.live_orders {
+                    for order in &generic_responses {
+                        if let Some(order_id) = order["order_id"].as_str() {
+                            live_orders.push(order_id.to_string());
+                        }
+                    }
+                }
+                break;
+            } else {
+                break;
+            }
+        }
+        Ok(())
     }
 }
