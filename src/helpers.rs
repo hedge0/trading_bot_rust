@@ -198,23 +198,21 @@ fn log_to_file<P: AsRef<Path>>(path: P, message: &str) -> std::io::Result<()> {
 
 // Function that logs a message.
 pub(crate) fn log_message(status: String) {
-    let now: DateTime<Utc> = Utc::now();
-    let formatted_now: String = now.format("%Y-%m-%d %H:%M:%S%.9f UTC").to_string();
-    let message: String = format!("{}   {}", formatted_now, status);
-    println!("{}", message);
+    println!("{}", status);
     if !cfg!(test) {
-        let _ = log_to_file("log.txt", &message);
+        let now: DateTime<Utc> = Utc::now();
+        let formatted_now: String = now.format("%Y-%m-%d %H:%M:%S%.9f UTC").to_string();
+        let _ = log_to_file("log.txt", &format!("{}   {}", formatted_now, status));
     }
 }
 
 // Function that logs an error message and exits the program.
 pub(crate) fn log_error(error: String) {
-    let now: DateTime<Utc> = Utc::now();
-    let formatted_now: String = now.format("%Y-%m-%d %H:%M:%S%.9f UTC").to_string();
-    let err_message: String = format!("{}   Error: {}.", formatted_now, error);
-    eprintln!("{}", err_message);
+    eprintln!("{}", format!("Error: {}.", error));
     if !cfg!(test) {
-        let _ = log_to_file("log.txt", &err_message);
+        let now: DateTime<Utc> = Utc::now();
+        let formatted_now: String = now.format("%Y-%m-%d %H:%M:%S%.9f UTC").to_string();
+        let _ = log_to_file("log.txt", &format!("{}   Error: {}.", formatted_now, error));
     }
     log_message(format!("Exiting..."));
     exit(1);
