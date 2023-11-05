@@ -1,6 +1,11 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
+pub(crate) struct Confirmation {
+    pub(crate) confirmed: bool,
+}
+
+#[derive(Serialize, Deserialize)]
 pub(crate) struct AccountResponse {
     pub(crate) id: String,
 }

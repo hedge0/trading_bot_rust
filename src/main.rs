@@ -82,7 +82,12 @@ fn main() {
                     Ok(contender_contracts) => {
                         if !contender_contracts.is_empty() {
                             if mode {
-                                ibkr.order_contender_contracts(&contender_contracts, num_fills);
+                                match ibkr
+                                    .order_contender_contracts(&contender_contracts, num_fills)
+                                {
+                                    Ok(_) => log_message(format!("Ordering Contracts...")),
+                                    Err(e) => log_error(format!("{}", e)),
+                                }
                             }
                             end_time = Some(start_time.elapsed());
                             for contender in contender_contracts {
