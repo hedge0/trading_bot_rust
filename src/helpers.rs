@@ -207,7 +207,7 @@ pub(crate) fn log_message(status: String) {
     }
 }
 
-// Function that logs an error message.
+// Function that logs an error message and exits the program.
 pub(crate) fn log_error(error: String) {
     let now: DateTime<Utc> = Utc::now();
     let formatted_now: String = now.format("%Y-%m-%d %H:%M:%S%.9f UTC").to_string();
