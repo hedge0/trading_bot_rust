@@ -80,11 +80,11 @@ fn main() {
 
                 match active_tick.get_contender_contracts(&option, num_orders) {
                     Ok(contender_contracts) => {
-                        end_time = Some(start_time.elapsed());
                         if !contender_contracts.is_empty() {
                             if mode {
                                 ibkr.order_contender_contracts(&contender_contracts, num_fills);
                             }
+                            end_time = Some(start_time.elapsed());
                             for contender in contender_contracts {
                                 log_message(format!(
                                     "Submitting Order for {} * {} {} @ {:.2}:",
