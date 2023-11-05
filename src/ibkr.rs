@@ -10,7 +10,10 @@ use std::{
 };
 
 use crate::{
-    helpers::{build_request_data, generate_conids_structure, generate_months_slice},
+    helpers::{
+        build_request_data, generate_conids_structure, generate_months_slice, log_error,
+        log_message,
+    },
     structs::{
         AccountResponse, Contender, OrderBody, PortfolioResponse, SecDefInfoResponse,
         SecDefResponse,
@@ -61,26 +64,20 @@ impl IBKR {
             Ok(account_id) => {
                 self.account_id = Some(account_id);
             }
-            Err(e) => {
-                eprintln!("Failed to get account ID: {}", e);
-                exit(1);
-            }
+            Err(e) => log_error(format!("Failed to get account ID: {}", e)),
         }
         match self.get_spx_conid() {
             Ok(spx_id) => {
                 self.spx_id = Some(spx_id);
             }
-            Err(e) => {
-                eprintln!("Failed to get SPX ID: {}", e);
-                exit(1);
-            }
+            Err(e) => log_error(format!("Failed to get SPX ID: {}", e)),
         }
         match self.get_conids_map(&dates_slice, &strike_slice) {
             Ok(conids_map) => Ok({
                 self.conids_map = Some(conids_map);
             }),
             Err(e) => {
-                eprintln!("Failed to init conid map: {}", e);
+                log_error(format!("Failed to init conid map: {}", e));
                 exit(1);
             }
         }
@@ -103,7 +100,11 @@ impl IBKR {
             .send()?;
 
         if !response.status().is_success() {
-            eprintln!("Error: {}\nBody: {:?}", response.status(), response.text()?);
+            log_error(format!(
+                "{}\nBody: {:?}",
+                response.status(),
+                response.text()?
+            ));
             exit(1);
         }
 
@@ -111,7 +112,7 @@ impl IBKR {
         if let Some(first_account) = account_result.get(0) {
             return Ok(first_account.id.clone());
         } else {
-            eprintln!("No account found in the response");
+            log_error(format!("No account found in the response"));
             exit(1);
         }
     }
@@ -133,7 +134,11 @@ impl IBKR {
             .send()?;
 
         if !response.status().is_success() {
-            eprintln!("Error: {}\nBody: {:?}", response.status(), response.text()?);
+            log_error(format!(
+                "{}\nBody: {:?}",
+                response.status(),
+                response.text()?
+            ));
             exit(1);
         }
 
@@ -147,7 +152,7 @@ impl IBKR {
             }
         }
 
-        eprintln!("No SPX conid found in the response");
+        log_error(format!("No SPX conid found in the response"));
         exit(1);
     }
 
@@ -180,7 +185,11 @@ impl IBKR {
                 .send()?;
 
             if !response.status().is_success() {
-                eprintln!("Error: {}\nBody: {:?}", response.status(), response.text()?);
+                log_error(format!(
+                    "{}\nBody: {:?}",
+                    response.status(),
+                    response.text()?
+                ));
                 exit(1);
             }
 
@@ -223,7 +232,11 @@ impl IBKR {
             .send()?;
 
         if !response.status().is_success() {
-            eprintln!("Error: {}\nBody: {:?}", response.status(), response.text()?);
+            log_error(format!(
+                "{}\nBody: {:?}",
+                response.status(),
+                response.text()?
+            ));
             exit(1);
         }
 
@@ -233,15 +246,15 @@ impl IBKR {
 
     // Function that cancels all submitted and presubmitted orders.
     pub(crate) fn cancel_pending_orders(&mut self) {
-        println!("Cancelling all pending limit orders");
+        log_message(format!("Cancelling all pending limit orders."));
 
         if let Some(live_orders) = &self.live_orders {
             let order_ids: Vec<String> = live_orders.iter().cloned().collect();
 
             for order_id in order_ids {
                 match self.cancel_order(&order_id) {
-                    Ok(message) => println!("{}", message),
-                    Err(e) => eprintln!("Error: {}", e),
+                    Ok(message) => log_message(format!("{}.", message)),
+                    Err(e) => log_message(format!("{}.", e)),
                 }
             }
         }

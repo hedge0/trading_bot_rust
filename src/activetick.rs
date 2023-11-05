@@ -4,7 +4,9 @@ use reqwest::blocking::{Client, Response};
 use std::{collections::HashMap, error::Error, process::exit};
 
 use crate::{
-    helpers::{get_boxspread_contenders, get_butterfly_contenders, get_calendar_contenders},
+    helpers::{
+        get_boxspread_contenders, get_butterfly_contenders, get_calendar_contenders, log_error,
+    },
     structs::{AuthResponse, ChainResponse, Contender, Opt},
 };
 
@@ -79,7 +81,7 @@ impl ActiveTick {
         match &self.dates_slice {
             Some(dates) => dates.clone(),
             None => {
-                println!("Error: dates_slice is None.");
+                log_error(format!("Dates slice is None"));
                 exit(1);
             }
         }
@@ -90,7 +92,7 @@ impl ActiveTick {
         match &self.strike_slice {
             Some(strikes) => strikes.clone(),
             None => {
-                println!("Error: strike_slice is None.");
+                log_error(format!("Strike slice is None"));
                 exit(1);
             }
         }
@@ -122,7 +124,11 @@ impl ActiveTick {
             .send()?;
 
         if !response.status().is_success() {
-            eprintln!("Error: {}\nBody: {:?}", response.status(), response.text()?);
+            log_error(format!(
+                "{}\nBody: {:?}",
+                response.status(),
+                response.text()?
+            ));
             exit(1);
         }
 
@@ -132,11 +138,10 @@ impl ActiveTick {
                 return Ok(session_id);
             }
         } else {
-            eprintln!("Error: User Unauthorized");
-            exit(1);
+            log_error(format!("User Unauthorized"));
         }
 
-        eprintln!("Error: Failed to get session ID");
+        log_error(format!("Failed to get session ID"));
         exit(1);
     }
 
@@ -177,14 +182,17 @@ impl ActiveTick {
             .send()?;
 
         if !response.status().is_success() {
-            eprintln!("Error: {}\nBody: {:?}", response.status(), response.text()?);
+            log_error(format!(
+                "{}\nBody: {:?}",
+                response.status(),
+                response.text()?
+            ));
             exit(1);
         }
 
         let chain_results: ChainResponse = response.json()?;
         if chain_results.rows.is_empty() {
-            eprintln!("Error: SPX rows data is empty");
-            exit(1);
+            log_error(format!("SPX rows data is empty"));
         }
         let mut dates_slice: Vec<String> = Vec::new();
         let mut strike_slice: HashMap<String, HashMap<String, Vec<f64>>> = HashMap::new();
@@ -271,7 +279,11 @@ impl ActiveTick {
             .send()?;
 
         if !response.status().is_success() {
-            eprintln!("Error: {}\nBody: {:?}", response.status(), response.text()?);
+            log_error(format!(
+                "{}\nBody: {:?}",
+                response.status(),
+                response.text()?
+            ));
             exit(1);
         }
 
