@@ -9,8 +9,6 @@ use std::{
     error::Error,
     io::{self, ErrorKind},
     process::exit,
-    thread::sleep,
-    time::Duration,
 };
 
 use crate::{
@@ -267,7 +265,7 @@ impl IBKR {
             live_orders.clear();
         }
 
-        sleep(Duration::from_secs(1));
+        log_message(format!("All pending limit orders cancelled."));
     }
 
     // Function that cancels a single order.

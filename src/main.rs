@@ -136,6 +136,7 @@ fn main() {
             if mode {
                 ibkr.cancel_pending_orders();
             }
+            sleep(Duration::from_secs(5));
         } else {
             log_message(format!("Market is closed."));
             break;
