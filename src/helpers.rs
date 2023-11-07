@@ -11,7 +11,7 @@ use std::{
     process::exit,
 };
 
-use crate::structs::{Contender, Contract, Opt, OrderBody};
+use crate::structs::{Contender, Contract, Opt, OrderBody, RequestDataStruct};
 
 // Function that gets input and returns result.
 fn get_user_input(prompt: &str) -> String {
@@ -460,13 +460,13 @@ pub(crate) fn build_request_data(
     account_id: &Option<String>,
     conids_map: &Option<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>>,
     discount_value: Option<f64>,
-) -> Vec<OrderBody> {
-    let mut request_data: Vec<OrderBody> = Vec::new();
+) -> RequestDataStruct {
+    let mut request_data: RequestDataStruct = RequestDataStruct { orders: Vec::new() };
 
     for contract in contender_contracts {
         match contract.type_spread.as_str() {
             "Calendar" => {
-                request_data.push(build_calendar_order(
+                request_data.orders.push(build_calendar_order(
                     contract,
                     num_fills,
                     account_id,
@@ -475,7 +475,7 @@ pub(crate) fn build_request_data(
                 ));
             }
             "Butterfly" => {
-                request_data.push(build_butterfly_order(
+                request_data.orders.push(build_butterfly_order(
                     contract,
                     num_fills,
                     account_id,
@@ -484,7 +484,7 @@ pub(crate) fn build_request_data(
                 ));
             }
             "Boxspread" => {
-                request_data.push(build_boxspread_order(
+                request_data.orders.push(build_boxspread_order(
                     contract,
                     num_fills,
                     account_id,
