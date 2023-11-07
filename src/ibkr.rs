@@ -17,8 +17,8 @@ use crate::{
         log_message,
     },
     structs::{
-        AccountResponse, Confirmation, Contender, OrderBody, PortfolioResponse, SecDefInfoResponse,
-        SecDefResponse,
+        AccountResponse, Confirmation, Contender, PortfolioResponse, RequestDataStruct,
+        SecDefInfoResponse, SecDefResponse,
     },
 };
 
@@ -312,7 +312,7 @@ impl IBKR {
             self.account_id.as_ref().unwrap()
         );
 
-        let request_data: Vec<OrderBody> = build_request_data(
+        let request_data: RequestDataStruct = build_request_data(
             contender_contracts,
             num_fills,
             &self.account_id,
