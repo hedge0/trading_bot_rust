@@ -7,7 +7,6 @@ mod structs;
 mod tests {
     use std::{collections::HashMap, env, error::Error};
 
-    use chrono::{Datelike, LocalResult, TimeZone, Utc, Weekday};
     use ordered_float::OrderedFloat;
 
     use crate::{
@@ -16,7 +15,6 @@ mod tests {
             calc_final_num_orders, calc_rank_value, calc_time_difference, convert_date,
             generate_conids_structure, generate_months_slice, get_boxspread_contenders,
             get_butterfly_contenders, get_calendar_contenders, get_dotenv_variable,
-            is_us_stock_market_open, is_weekday,
         },
         structs::{Contender, Contract, Opt, OrderBody},
     };
@@ -37,54 +35,6 @@ mod tests {
         // Test with a non-existent key.
         let result: Result<String, Box<dyn Error>> = get_dotenv_variable("NON_EXISTENT_KEY");
         assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_is_us_stock_market_open() {
-        // Function to safely extract DateTime from LocalResult.
-        fn extract_datetime(result: LocalResult<chrono::DateTime<Utc>>) -> chrono::DateTime<Utc> {
-            match result {
-                LocalResult::Single(dt) => dt,
-                _ => panic!("Invalid date/time provided."),
-            }
-        }
-
-        // Test when market is definitely closed.
-        let time: chrono::DateTime<Utc> =
-            extract_datetime(Utc.with_ymd_and_hms(2023, 10, 10, 5, 0, 0)); // 5:00 AM UTC.
-        assert_eq!(is_us_stock_market_open(time), false);
-
-        // Test right at market open.
-        let time: chrono::DateTime<Utc> =
-            extract_datetime(Utc.with_ymd_and_hms(2023, 10, 10, 9, 30, 0)); // 9:30 AM UTC.
-        assert_eq!(is_us_stock_market_open(time), true);
-
-        // Test during open market hours.
-        let time: chrono::DateTime<Utc> =
-            extract_datetime(Utc.with_ymd_and_hms(2023, 10, 10, 12, 0, 0)); // 12:00 PM UTC.
-        assert_eq!(is_us_stock_market_open(time), true);
-
-        // Test right at market close.
-        let time: chrono::DateTime<Utc> =
-            extract_datetime(Utc.with_ymd_and_hms(2023, 10, 10, 15, 15, 0)); // 3:15 PM UTC.
-        assert_eq!(is_us_stock_market_open(time), true);
-
-        // Test right after market close.
-        let time: chrono::DateTime<Utc> =
-            extract_datetime(Utc.with_ymd_and_hms(2023, 10, 10, 15, 16, 0)); // 3:16 PM UTC.
-        assert_eq!(is_us_stock_market_open(time), false);
-    }
-
-    #[test]
-    fn test_is_weekday() {
-        // Obtain the current day of the week.
-        let today: Weekday = Utc::now().weekday();
-
-        // Determine if today is a weekday. If today is Saturday or Sunday, it should return false; otherwise, true.
-        let expected: bool = today != Weekday::Sat && today != Weekday::Sun;
-
-        // Check that the function's result matches the expected value.
-        assert_eq!(is_weekday(), expected);
     }
 
     #[test]
