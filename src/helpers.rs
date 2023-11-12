@@ -1,4 +1,5 @@
-use chrono::{DateTime, Datelike, Local, NaiveDate, Timelike, Utc, Weekday};
+use chrono::{DateTime, Datelike, Local, NaiveDate, TimeZone, Utc, Weekday};
+use chrono_tz::America::New_York;
 use dotenv::dotenv;
 use ordered_float::OrderedFloat;
 use std::{
@@ -220,32 +221,32 @@ pub(crate) fn log_error(error: String) {
 
 // Function that checks if the stock market is currently open.
 pub(crate) fn is_us_stock_market_open(current_time: chrono::DateTime<Utc>) -> bool {
-    let market_open_hour: u32 = 9;
-    let market_open_minute: u32 = 30;
-    let market_close_hour: u32 = 15;
-    let market_close_minute: u32 = 15;
+    // Convert the current UTC time to New York time
+    let ny_time: DateTime<chrono_tz::Tz> = current_time.with_timezone(&New_York);
 
-    let current_hour: u32 = current_time.hour();
-    let current_minute: u32 = current_time.minute();
-
-    println!("{}", current_hour);
-
-    if current_hour > market_open_hour && current_hour < market_close_hour {
-        return true;
-    } else if current_hour == market_open_hour && current_minute >= market_open_minute {
-        return true;
-    } else if current_hour == market_close_hour && current_minute <= market_close_minute {
-        return true;
+    // Check if it's a weekday (NYSE and NASDAQ are closed on weekends)
+    if ny_time.weekday() == Weekday::Sat || ny_time.weekday() == Weekday::Sun {
+        return false;
     }
 
-    // The market is closed.
-    false
-}
+    // Define market opening and closing hours in New York time using with_ymd_and_hms()
+    let market_open_result: chrono::LocalResult<DateTime<chrono_tz::Tz>> =
+        New_York.with_ymd_and_hms(ny_time.year(), ny_time.month(), ny_time.day(), 9, 30, 0);
+    let market_close_result: chrono::LocalResult<DateTime<chrono_tz::Tz>> =
+        New_York.with_ymd_and_hms(ny_time.year(), ny_time.month(), ny_time.day(), 15, 55, 0);
 
-// Function that checks if the current day is a weekday.
-pub(crate) fn is_weekday() -> bool {
-    let today: Weekday = Utc::now().weekday();
-    today != Weekday::Sat && today != Weekday::Sun
+    let market_open: DateTime<chrono_tz::Tz> = match market_open_result.single() {
+        Some(time) => time,
+        None => return false,
+    };
+
+    let market_close: DateTime<chrono_tz::Tz> = match market_close_result.single() {
+        Some(time) => time,
+        None => return false,
+    };
+
+    // Check if the current time is within market hours
+    ny_time >= market_open && ny_time <= market_close
 }
 
 // Function that calcs the number of orders and fills for every fill type.

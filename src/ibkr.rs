@@ -287,7 +287,7 @@ impl IBKR {
             .send()?;
 
         if response.status().is_success() {
-            Ok(format!("Order ID {} cancelled successfully.", order_id))
+            Ok(format!("Order ID {} cancelled successfully", order_id))
         } else {
             Err(Box::new(io::Error::new(
                 ErrorKind::Other,
