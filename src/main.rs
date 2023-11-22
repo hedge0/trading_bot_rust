@@ -27,7 +27,7 @@ fn main() {
     let mut active_tick: ActiveTick = ActiveTick::new();
     let mut ibkr: IBKR = IBKR::new();
 
-    match active_tick.init(&get_username(), &get_password(), &get_api_key(), 4) {
+    match active_tick.init(&get_username(), &get_password(), &get_api_key(), 6) {
         Ok(_) => log_message(format!("User authenticated.")),
         Err(e) => log_error(format!("{}", e)),
     }
