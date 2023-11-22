@@ -722,7 +722,7 @@ pub(crate) fn get_boxspread_contenders(
                         let arb_val: f64 =
                             (current_p.mkt + right_c.mkt) - (current_c.mkt + right_p.mkt);
 
-                        if arb_val < -5.15
+                        if arb_val < -5.25
                             && current_c.bid > 1.0
                             && current_p.bid > 1.0
                             && right_c.bid > 1.0
