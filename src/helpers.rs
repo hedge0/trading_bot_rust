@@ -620,7 +620,7 @@ pub(crate) fn get_butterfly_contenders(
                             let arb_val: f64 = (2.0 * current_contract.mkt)
                                 - (left_contract.mkt + right_contract.mkt);
 
-                            if arb_val > 0.15
+                            if arb_val > 0.25
                                 && left_contract.bid > 1.0
                                 && right_contract.bid > 1.0
                                 && current_contract.bid > 1.0
