@@ -11,10 +11,9 @@ mod tests {
 
     use crate::{
         helpers::{
-            build_boxspread_order, build_butterfly_order, build_calendar_order,
-            calc_final_num_orders, calc_rank_value, calc_time_difference, convert_date,
-            generate_conids_structure, generate_months_slice, get_boxspread_contenders,
-            get_butterfly_contenders, get_calendar_contenders, get_dotenv_variable,
+            build_boxspread_order, build_butterfly_order, calc_final_num_orders, calc_rank_value,
+            calc_time_difference, convert_date, generate_conids_structure, generate_months_slice,
+            get_boxspread_contenders, get_butterfly_contenders, get_dotenv_variable,
         },
         structs::{Contender, Contract, Opt, OrderBody},
     };
@@ -176,67 +175,6 @@ mod tests {
         assert_eq!(result.len(), 2);
         assert_eq!(result[0], "NOV21");
         assert_eq!(result[1], "DEC21");
-    }
-
-    #[test]
-    fn test_build_calendar_order() {
-        // Mock data setup for the test.
-        let contract: Contender = Contender {
-            type_spread: "Calendar".to_string(), // Specify the spread type for the contender.
-            arb_val: 1.0,                        // Arbitrage value for the contender.
-            contracts: vec![
-                Contract {
-                    date: "2021-11-01".to_string(),
-                    type_contract: "C".to_string(),
-                    strike: *OrderedFloat(3000.0),
-                    mkt_price: 12.2,
-                },
-                Contract {
-                    date: "2021-11-02".to_string(),
-                    type_contract: "C".to_string(),
-                    strike: *OrderedFloat(3000.0),
-                    mkt_price: 11.2,
-                },
-            ],
-            avg_ask: 3.5,
-            exp_date: "2021-11-01".to_string(),
-            rank_value: 1.75,
-        };
-
-        // Creating a nested map to mock the `conids_map` for the test.
-        let mut inner_map_1: HashMap<String, HashMap<OrderedFloat<f64>, String>> = HashMap::new();
-        inner_map_1.insert("C".to_string(), {
-            let mut strike_map: HashMap<OrderedFloat<f64>, String> = HashMap::new();
-            strike_map.insert(OrderedFloat(3000.0), "CONID1".to_string()); // Mapping a strike price to a contract ID.
-            strike_map
-        });
-
-        let mut inner_map_2: HashMap<String, HashMap<OrderedFloat<f64>, String>> = HashMap::new();
-        inner_map_2.insert("C".to_string(), {
-            let mut strike_map: HashMap<OrderedFloat<f64>, String> = HashMap::new();
-            strike_map.insert(OrderedFloat(3000.0), "CONID2".to_string()); // Mapping another strike price to a contract ID.
-            strike_map
-        });
-
-        let mut conids_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>> =
-            HashMap::new();
-        conids_map.insert("2021-11-01".to_string(), inner_map_1);
-        conids_map.insert("2021-11-02".to_string(), inner_map_2);
-
-        // Call the function with the mock data to obtain a result.
-        let result: OrderBody = build_calendar_order(
-            &contract,
-            2,
-            &Some("ACCOUNT_ID".to_string()),
-            &Some(conids_map),
-            Some(0.9),
-        );
-
-        // Assertions to verify the correctness of the output.
-        assert_eq!(result.acct_id, "ACCOUNT_ID"); // Ensure the account ID matches the expected value.
-        assert_eq!(result.con_idex, "28812380;;;CONID1/-1,CONID2/1"); // Verify the construction of the contract index string.
-        assert_eq!(result.price, -0.95); // Validate the calculated price.
-        assert_eq!(result.quantity, 2); // Check the order quantity.
     }
 
     #[test]
@@ -405,130 +343,6 @@ mod tests {
         ); // Verify the construction of the contract index string.
         assert_eq!(result.price, -5.90); // Validate the calculated price.
         assert_eq!(result.quantity, 4); // Check the order quantity.
-    }
-
-    #[test]
-    fn test_get_calendar_contenders_1() {
-        // Mock data setup for the test.
-        let dates_slice: Vec<String> = vec!["210101".to_string(), "210102".to_string()];
-
-        let mut strike_slice: HashMap<String, HashMap<String, Vec<f64>>> = HashMap::new();
-        strike_slice.insert("210101".to_string(), {
-            let mut map: HashMap<String, Vec<f64>> = HashMap::new();
-            map.insert("C".to_string(), vec![4500.0]);
-            map
-        });
-        strike_slice.insert("210102".to_string(), {
-            let mut map: HashMap<String, Vec<f64>> = HashMap::new();
-            map.insert("C".to_string(), vec![4500.0]);
-            map
-        });
-
-        let mut contracts_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>> =
-            HashMap::new();
-        contracts_map.insert("210101".to_string(), {
-            let mut map: HashMap<String, HashMap<OrderedFloat<f64>, Opt>> = HashMap::new();
-            map.insert("C".to_string(), {
-                let mut inner_map: HashMap<OrderedFloat<f64>, Opt> = HashMap::new();
-                inner_map.insert(
-                    OrderedFloat(4500.0),
-                    Opt {
-                        mkt: 382.30,
-                        bid: 373.80,
-                        asz: 8.0,
-                    },
-                );
-                inner_map
-            });
-            map
-        });
-        contracts_map.insert("210102".to_string(), {
-            let mut map: HashMap<String, HashMap<OrderedFloat<f64>, Opt>> = HashMap::new();
-            map.insert("C".to_string(), {
-                let mut inner_map: HashMap<OrderedFloat<f64>, Opt> = HashMap::new();
-                inner_map.insert(
-                    OrderedFloat(4500.0),
-                    Opt {
-                        mkt: 381.20,
-                        bid: 371.40,
-                        asz: 12.0,
-                    },
-                );
-                inner_map
-            });
-            map
-        });
-
-        // Call the function with the mock data.
-        let result: Vec<Contender> =
-            get_calendar_contenders(&contracts_map, &dates_slice, &strike_slice).unwrap();
-
-        // Assertions.
-        assert_eq!(result.len(), 1);
-        assert_eq!(result[0].arb_val, 1.10);
-        assert_eq!(result[0].avg_ask, 10.0);
-        assert_eq!(result[0].type_spread, "Calendar");
-        assert_eq!(result[0].exp_date, "210101");
-    }
-
-    #[test]
-    fn test_get_calendar_contenders_2() {
-        // Mock data setup for the test.
-        let dates_slice: Vec<String> = vec!["210101".to_string(), "210102".to_string()];
-
-        let mut strike_slice: HashMap<String, HashMap<String, Vec<f64>>> = HashMap::new();
-        strike_slice.insert("210101".to_string(), {
-            let mut map: HashMap<String, Vec<f64>> = HashMap::new();
-            map.insert("C".to_string(), vec![4425.0]);
-            map
-        });
-        strike_slice.insert("210102".to_string(), {
-            let mut map: HashMap<String, Vec<f64>> = HashMap::new();
-            map.insert("C".to_string(), vec![4425.0]);
-            map
-        });
-
-        let mut contracts_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>> =
-            HashMap::new();
-        contracts_map.insert("210101".to_string(), {
-            let mut map: HashMap<String, HashMap<OrderedFloat<f64>, Opt>> = HashMap::new();
-            map.insert("C".to_string(), {
-                let mut inner_map: HashMap<OrderedFloat<f64>, Opt> = HashMap::new();
-                inner_map.insert(
-                    OrderedFloat(4425.0),
-                    Opt {
-                        mkt: 307.30,
-                        bid: 298.80,
-                        asz: 8.0,
-                    },
-                );
-                inner_map
-            });
-            map
-        });
-        contracts_map.insert("210102".to_string(), {
-            let mut map: HashMap<String, HashMap<OrderedFloat<f64>, Opt>> = HashMap::new();
-            map.insert("C".to_string(), {
-                let mut inner_map: HashMap<OrderedFloat<f64>, Opt> = HashMap::new();
-                inner_map.insert(
-                    OrderedFloat(4425.0),
-                    Opt {
-                        mkt: 307.0,
-                        bid: 296.40,
-                        asz: 12.0,
-                    },
-                );
-                inner_map
-            });
-            map
-        });
-
-        // Call the function with the mock data.
-        let result: Vec<Contender> =
-            get_calendar_contenders(&contracts_map, &dates_slice, &strike_slice).unwrap();
-
-        // Assertions.
-        assert_eq!(result.len(), 0);
     }
 
     #[test]

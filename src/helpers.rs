@@ -61,13 +61,9 @@ pub(crate) fn get_option() -> String {
         Ok(val) => val,
         Err(_) => {
             let prompt: &str = "\
-1 for Calendar
-2 for Butterfly
-3 for Boxspread
-4 for Calendar + Butterfly
-5 for Calendar + Boxspread
-6 for Butterfly + Boxspread
-DEFAULT for Calendar + Butterfly + Boxspread
+1 for Butterfly
+2 for Boxspread
+DEFAULT for Butterfly + Boxspread
 ";
             get_user_input(&format!(
                 "{}\nEnter which strategy the bot should use:",
@@ -344,42 +340,7 @@ pub(crate) fn generate_months_slice(dates_slice: &[String]) -> Vec<String> {
     months_slice
 }
 
-// Function that builds calendar order body.
-pub(crate) fn build_calendar_order(
-    contract: &Contender,
-    num_fills: i32,
-    account_id: &Option<String>,
-    conids_map: &Option<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>>,
-    discount_value: Option<f64>,
-) -> OrderBody {
-    let arb_val: f64 =
-        calendar_spread_risk_free_profit(&contract.contracts[0].strike, contract.arb_val);
-    let max_loss: f64 = contract.arb_val - arb_val;
-    OrderBody {
-        acct_id: account_id.clone().unwrap(),
-        con_idex: format!(
-            "28812380;;;{}/-1,{}/1",
-            conids_map.as_ref().unwrap()[contract.contracts[0].date.as_str()]
-                [contract.contracts[0].type_contract.as_str()]
-                [(&contract.contracts[0].strike).into()],
-            conids_map.as_ref().unwrap()[contract.contracts[1].date.as_str()]
-                [contract.contracts[1].type_contract.as_str()]
-                [(&contract.contracts[1].strike).into()]
-        ),
-        order_type: "LMT".to_string(),
-        listing_exchange: "SMART".to_string(),
-        outside_rth: false,
-        price: -1.0 * ((((arb_val * discount_value.unwrap()) + max_loss) * 100.0).round() / 100.0),
-        side: "BUY".to_string(),
-        ticker: "SPX".to_string(),
-        tif: "DAY".to_string(),
-        referrer: "NO_REFERRER_PROVIDED".to_string(),
-        quantity: num_fills,
-        use_adaptive: false,
-    }
-}
-
-// Function that builds calendar order body.
+// Function that builds butterfly order body.
 pub(crate) fn build_butterfly_order(
     contract: &Contender,
     num_fills: i32,
@@ -414,7 +375,7 @@ pub(crate) fn build_butterfly_order(
     }
 }
 
-// Function that builds calendar order body.
+// Function that builds boxspread order body.
 pub(crate) fn build_boxspread_order(
     contract: &Contender,
     num_fills: i32,
@@ -466,15 +427,6 @@ pub(crate) fn build_request_data(
 
     for contract in contender_contracts {
         match contract.type_spread.as_str() {
-            "Calendar" => {
-                request_data.orders.push(build_calendar_order(
-                    contract,
-                    num_fills,
-                    account_id,
-                    conids_map,
-                    discount_value,
-                ));
-            }
             "Butterfly" => {
                 request_data.orders.push(build_butterfly_order(
                     contract,
@@ -498,86 +450,6 @@ pub(crate) fn build_request_data(
     }
 
     request_data
-}
-
-// Function that returns a slice of the top calendar arbs.
-pub(crate) fn get_calendar_contenders(
-    contracts_map: &HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>>,
-    dates_slice: &Vec<String>,
-    strike_slice: &HashMap<String, HashMap<String, Vec<f64>>>,
-) -> Result<Vec<Contender>, Box<dyn Error>> {
-    let mut contender_contracts: Vec<Contender> = Vec::new();
-    let now: chrono::DateTime<Local> = Local::now();
-    let current_date: String = format!("{:02}{:02}{:02}", now.year() % 100, now.month(), now.day());
-
-    for date_index in 0..(dates_slice.len() - 1) {
-        let date: &String = &dates_slice[date_index];
-
-        if let Some(strike_data) = strike_slice.get(date) {
-            for (type_contract, strikes) in strike_data.iter() {
-                for strike in strikes {
-                    let current_opt: &Opt = contracts_map
-                        .get(date)
-                        .and_then(|m| m.get(type_contract))
-                        .and_then(|m| m.get(&OrderedFloat(*strike)))
-                        .ok_or("Error accessing current contract")?;
-
-                    let next_date: &String = &dates_slice[date_index + 1];
-                    let next_opt: Option<&Opt> = contracts_map
-                        .get(next_date)
-                        .and_then(|m| m.get(type_contract))
-                        .and_then(|m| m.get(&OrderedFloat(*strike)));
-
-                    if let Some(next_opt) = next_opt {
-                        let arb_val: f64 = current_opt.mkt - next_opt.mkt;
-
-                        if arb_val > 0.5
-                            && current_opt.bid > 1.0
-                            && next_opt.bid > 1.0
-                            && current_opt.asz > 0.0
-                            && next_opt.asz > 0.0
-                            && calc_time_difference(date, next_date) == 1
-                            && calendar_spread_risk_free_profit(strike, arb_val) > 0.15
-                        {
-                            let avg_ask: f64 = ((current_opt.asz + next_opt.asz) / 2.0).round();
-                            let rank_value: f64 =
-                                calc_rank_value(avg_ask, arb_val, &current_date, date);
-
-                            contender_contracts.push(Contender {
-                                arb_val: (arb_val * 100.0).round() / 100.0,
-                                avg_ask,
-                                type_spread: "Calendar".to_string(),
-                                exp_date: date.clone(),
-                                rank_value,
-                                contracts: vec![
-                                    Contract {
-                                        strike: *strike,
-                                        mkt_price: current_opt.mkt,
-                                        date: date.clone(),
-                                        type_contract: type_contract.clone(),
-                                    },
-                                    Contract {
-                                        strike: *strike,
-                                        mkt_price: next_opt.mkt,
-                                        date: next_date.clone(),
-                                        type_contract: type_contract.clone(),
-                                    },
-                                ],
-                            });
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    Ok(contender_contracts)
-}
-
-// Function that predicts max callie loss.
-pub(crate) fn calendar_spread_risk_free_profit(strike: &f64, arb_val: f64) -> f64 {
-    let max_loss: f64 = (strike / 200.0) * 0.03;
-    arb_val - max_loss
 }
 
 // Function that returns a slice of the top butterfly arbs.
