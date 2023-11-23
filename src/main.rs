@@ -13,9 +13,8 @@ use std::{
 use activetick::ActiveTick;
 use chrono::Utc;
 use helpers::{
-    calc_final_num_orders, get_api_key, get_discount_value, get_dotenv_variable, get_fill_type,
-    get_mode, get_option, get_password, get_seconds_to_sleep, get_username,
-    is_us_stock_market_open, log_error, log_message,
+    calc_final_num_orders, get_discount_value, get_dotenv_variable, get_fill_type, get_mode,
+    get_option, get_seconds_to_sleep, is_us_stock_market_open, log_error, log_message,
 };
 use ibkr::IBKR;
 
@@ -27,7 +26,7 @@ fn main() {
     let mut active_tick: ActiveTick = ActiveTick::new();
     let mut ibkr: IBKR = IBKR::new();
 
-    match active_tick.init(&get_username(), &get_password(), &get_api_key(), 6) {
+    match active_tick.init("", "", "", 6) {
         Ok(_) => log_message(format!("User authenticated.")),
         Err(e) => log_error(format!("{}", e)),
     }
