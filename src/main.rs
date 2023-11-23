@@ -36,23 +36,21 @@ fn main() {
     let mode: bool = get_mode();
     let seconds_to_sleep: u64 = get_seconds_to_sleep();
 
-    if mode {
-        match ibkr.init(
-            get_discount_value(),
-            match get_dotenv_variable("DOMAIN") {
-                Ok(val) => val,
-                Err(_) => "localhost".to_string(),
-            },
-            match get_dotenv_variable("PORT") {
-                Ok(val) => val,
-                Err(_) => "5000".to_string(),
-            },
-            active_tick.get_dates_slice(),
-            active_tick.get_strike_slice(),
-        ) {
-            Ok(_) => log_message(format!("Bot is live.")),
-            Err(e) => log_error(format!("{}", e)),
-        }
+    match ibkr.init(
+        get_discount_value(),
+        match get_dotenv_variable("DOMAIN") {
+            Ok(val) => val,
+            Err(_) => "localhost".to_string(),
+        },
+        match get_dotenv_variable("PORT") {
+            Ok(val) => val,
+            Err(_) => "5000".to_string(),
+        },
+        active_tick.get_dates_slice(),
+        active_tick.get_strike_slice(),
+    ) {
+        Ok(_) => log_message(format!("Bot is live.")),
+        Err(e) => log_error(format!("{}", e)),
     }
 
     loop {
