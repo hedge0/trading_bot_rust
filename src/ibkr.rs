@@ -52,6 +52,7 @@ impl IBKR {
         port: String,
         dates_slice: Vec<String>,
         strike_slice: HashMap<String, HashMap<String, Vec<f64>>>,
+        mode: bool,
     ) -> Result<(), Box<dyn Error>> {
         self.discount_value = Some(discount_value);
         self.base_url = Some(format!("https://{}:{}", domain, port));
@@ -74,14 +75,18 @@ impl IBKR {
             }
             Err(e) => log_error(format!("Failed to get SPX ID: {}", e)),
         }
-        match self.get_conids_map(&dates_slice, &strike_slice) {
-            Ok(conids_map) => Ok({
-                self.conids_map = Some(conids_map);
-            }),
-            Err(e) => {
-                log_error(format!("Failed to init conid map: {}", e));
-                exit(1);
+        if mode {
+            match self.get_conids_map(&dates_slice, &strike_slice) {
+                Ok(conids_map) => Ok({
+                    self.conids_map = Some(conids_map);
+                }),
+                Err(e) => {
+                    log_error(format!("Failed to init conid map: {}", e));
+                    exit(1);
+                }
             }
+        } else {
+            Ok(())
         }
     }
 

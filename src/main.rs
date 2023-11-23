@@ -48,6 +48,7 @@ fn main() {
         },
         active_tick.get_dates_slice(),
         active_tick.get_strike_slice(),
+        mode,
     ) {
         Ok(_) => log_message(format!("Bot is live.")),
         Err(e) => log_error(format!("{}", e)),
