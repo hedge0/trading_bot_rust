@@ -128,13 +128,6 @@ pub(crate) struct Contender {
 impl Contender {
     pub(crate) fn action(&self, index: usize) -> &str {
         match self.type_spread.as_str() {
-            "Calendar" => {
-                if index == 0 {
-                    "SELL"
-                } else {
-                    "BUY"
-                }
-            }
             "Butterfly" => {
                 if index == 1 {
                     "SELL"

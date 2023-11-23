@@ -4,31 +4,21 @@ use reqwest::blocking::{Client, Response};
 use std::{collections::HashMap, error::Error, process::exit};
 
 use crate::{
-    helpers::{
-        get_boxspread_contenders, get_butterfly_contenders, get_calendar_contenders, log_error,
-    },
+    helpers::{get_boxspread_contenders, get_butterfly_contenders, log_error},
     structs::{AuthResponse, ChainResponse, Contender, Opt},
 };
 
 enum OptionType {
-    Calendar,
     Butterfly,
     BoxSpread,
-    CalendarButterfly,
-    CalendarBoxSpread,
-    ButterflyBoxSpread,
     All,
 }
 
 impl OptionType {
     fn from_str(s: &str) -> Option<Self> {
         match s {
-            "1" => Some(OptionType::Calendar),
-            "2" => Some(OptionType::Butterfly),
-            "3" => Some(OptionType::BoxSpread),
-            "4" => Some(OptionType::CalendarButterfly),
-            "5" => Some(OptionType::CalendarBoxSpread),
-            "6" => Some(OptionType::ButterflyBoxSpread),
+            "1" => Some(OptionType::Butterfly),
+            "2" => Some(OptionType::BoxSpread),
             _ => Some(OptionType::All),
         }
     }
@@ -352,13 +342,6 @@ impl ActiveTick {
             .ok_or("strike slice is not set")?;
 
         match OptionType::from_str(option).ok_or("Invalid option type")? {
-            OptionType::Calendar => {
-                contender_contracts_total.extend(get_calendar_contenders(
-                    &contracts_map,
-                    dates_slice,
-                    strike_slice,
-                )?);
-            }
             OptionType::Butterfly => {
                 contender_contracts_total.extend(get_butterfly_contenders(
                     &contracts_map,
@@ -373,48 +356,7 @@ impl ActiveTick {
                     strike_slice,
                 )?);
             }
-            OptionType::CalendarButterfly => {
-                contender_contracts_total.extend(get_calendar_contenders(
-                    &contracts_map,
-                    dates_slice,
-                    strike_slice,
-                )?);
-                contender_contracts_total.extend(get_butterfly_contenders(
-                    &contracts_map,
-                    dates_slice,
-                    strike_slice,
-                )?);
-            }
-            OptionType::CalendarBoxSpread => {
-                contender_contracts_total.extend(get_calendar_contenders(
-                    &contracts_map,
-                    dates_slice,
-                    strike_slice,
-                )?);
-                contender_contracts_total.extend(get_boxspread_contenders(
-                    &contracts_map,
-                    dates_slice,
-                    strike_slice,
-                )?);
-            }
-            OptionType::ButterflyBoxSpread => {
-                contender_contracts_total.extend(get_butterfly_contenders(
-                    &contracts_map,
-                    dates_slice,
-                    strike_slice,
-                )?);
-                contender_contracts_total.extend(get_boxspread_contenders(
-                    &contracts_map,
-                    dates_slice,
-                    strike_slice,
-                )?);
-            }
             OptionType::All => {
-                contender_contracts_total.extend(get_calendar_contenders(
-                    &contracts_map,
-                    dates_slice,
-                    strike_slice,
-                )?);
                 contender_contracts_total.extend(get_butterfly_contenders(
                     &contracts_map,
                     dates_slice,
