@@ -31,30 +31,6 @@ pub(crate) fn get_dotenv_variable(key: &str) -> Result<String, Box<dyn Error>> {
     }
 }
 
-// Function that gets username.
-pub(crate) fn get_username() -> String {
-    match get_dotenv_variable("USER_NAME") {
-        Ok(val) => val,
-        Err(_) => get_user_input("Enter username:"),
-    }
-}
-
-// Function that gets password.
-pub(crate) fn get_password() -> String {
-    match get_dotenv_variable("PASSWORD") {
-        Ok(val) => val,
-        Err(_) => get_user_input("Enter password:"),
-    }
-}
-
-// Function that gets API key.
-pub(crate) fn get_api_key() -> String {
-    match get_dotenv_variable("API_KEY") {
-        Ok(val) => val,
-        Err(_) => get_user_input("Enter API key:"),
-    }
-}
-
 // Function that gets option for contracts to look for.
 pub(crate) fn get_option() -> String {
     match get_dotenv_variable("OPTION") {
