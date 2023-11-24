@@ -46,6 +46,8 @@ fn main() {
         Err(e) => log_error(format!("{}", e)),
     }
 
+    exit(0);
+
     loop {
         if !mode || is_us_stock_market_open(Utc::now()) {
             if mode {
