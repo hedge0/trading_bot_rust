@@ -41,6 +41,7 @@ fn main() {
             Err(_) => "5000".to_string(),
         },
         current_price,
+        5,
     ) {
         Ok(_) => log_message(format!("Bot is live.")),
         Err(e) => log_error(format!("{}", e)),

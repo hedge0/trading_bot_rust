@@ -12,10 +12,7 @@ use std::{
 };
 
 use crate::{
-    helpers::{
-        build_request_data, generate_conids_structure, generate_months_slice, log_error,
-        log_message,
-    },
+    helpers::{build_request_data, log_error, log_message},
     structs::{
         AccountResponse, Confirmation, Contender, PortfolioResponse, RequestDataStruct,
         SecDefInfoResponse, SecDefResponse,
@@ -54,6 +51,7 @@ impl IBKR {
         domain: String,
         port: String,
         current_price: f64,
+        num_days: i64,
     ) -> Result<(), Box<dyn Error>> {
         self.discount_value = Some(discount_value);
         self.base_url = Some(format!("https://{}:{}", domain, port));
@@ -76,17 +74,15 @@ impl IBKR {
             }
             Err(e) => log_error(format!("Failed to get SPX ID: {}", e)),
         }
-        //    match self.get_conids_map(&dates_slice, &strike_slice) {
-        //        Ok(conids_map) => Ok({
-        //            self.conids_map = Some(conids_map);
-        //        }),
-        //        Err(e) => {
-        //            log_error(format!("Failed to init conid map: {}", e));
-        //            exit(1);
-        //        }
-        //    }
-
-        Ok(())
+        match self.get_conids_map(current_price, num_days) {
+            Ok(conids_map) => Ok({
+                self.conids_map = Some(conids_map);
+            }),
+            Err(e) => {
+                log_error(format!("Failed to init conid map: {}", e));
+                exit(1);
+            }
+        }
     }
 
     // Function that sends a GET request for portfolio ID.
@@ -165,13 +161,13 @@ impl IBKR {
     // Function that gets a list of conids for all relevant contracts.
     fn get_conids_map(
         &self,
-        dates_slice: &[String],
-        strike_slice: &HashMap<String, HashMap<String, Vec<f64>>>,
+        current_price: f64,
+        num_days: i64,
     ) -> Result<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>, Box<dyn Error>>
     {
         let mut conids_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>> =
-            generate_conids_structure(dates_slice, strike_slice);
-        let months_slice: Vec<String> = generate_months_slice(dates_slice);
+            HashMap::new();
+        let months_slice: Vec<String> = Vec::new();
 
         for month in months_slice {
             let search_url: String = format!(
