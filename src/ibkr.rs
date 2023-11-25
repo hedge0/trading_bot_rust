@@ -142,36 +142,33 @@ impl IBKR {
             exit(1);
         }
 
-        let search_results: Vec<SecDefInfoResponse> = response.json()?;
+        let search_url_2: String = format!(
+            "{}/v1/api/iserver/secdef/info?conid={}&sectype=OPT&month={}&exchange=SMART&strike=0",
+            self.base_url.as_ref().unwrap(),
+            self.spx_id.as_ref().unwrap(),
+            next_month
+        );
 
-        if num_days > 0 {
-            let search_url_2: String = format!(
-                "{}/v1/api/iserver/secdef/info?conid={}&sectype=OPT&month={}&exchange=SMART&strike=0",
-                self.base_url.as_ref().unwrap(),
-                self.spx_id.as_ref().unwrap(),
-                next_month
-            );
+        let response_2: Response = self
+            .client
+            .as_ref()
+            .ok_or("Client is not initialized")?
+            .get(&search_url_2)
+            .header("Connection", "keep-alive")
+            .header("User-Agent", "trading_bot_rust/1.0")
+            .send()?;
 
-            let response_2: Response = self
-                .client
-                .as_ref()
-                .ok_or("Client is not initialized")?
-                .get(&search_url_2)
-                .header("Connection", "keep-alive")
-                .header("User-Agent", "trading_bot_rust/1.0")
-                .send()?;
-
-            if !response_2.status().is_success() {
-                log_error(format!(
-                    "{}\nBody: {:?}",
-                    response_2.status(),
-                    response_2.text()?
-                ));
-                exit(1);
-            }
-
-            let search_results_2: Vec<SecDefInfoResponse> = response_2.json()?;
+        if !response_2.status().is_success() {
+            log_error(format!(
+                "{}\nBody: {:?}",
+                response_2.status(),
+                response_2.text()?
+            ));
+            exit(1);
         }
+
+        let search_results: Vec<SecDefInfoResponse> = response.json()?;
+        let search_results_2: Vec<SecDefInfoResponse> = response_2.json()?;
 
         Ok((dates_slice, strike_slice, conids_map))
     }
