@@ -28,8 +28,6 @@ pub(crate) struct Section {
 #[derive(Serialize, Deserialize)]
 pub(crate) struct SecDefInfoResponse {
     pub(crate) conid: f64,
-    #[serde(rename = "tradingClass")]
-    pub(crate) trading_class: String,
     #[serde(rename = "maturityDate")]
     pub(crate) maturity_date: String,
     pub(crate) right: String,
