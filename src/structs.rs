@@ -85,12 +85,6 @@ pub(crate) struct OrdersResponse {
     pub(crate) orders: Vec<Order>,
 }
 
-#[derive(Deserialize)]
-pub(crate) struct AuthResponse {
-    pub(crate) status: String,
-    pub(crate) sessionid: Option<String>,
-}
-
 #[derive(Serialize, Deserialize)]
 pub(crate) struct ChainResponse {
     pub(crate) rows: Vec<ChainRow>,

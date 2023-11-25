@@ -26,6 +26,8 @@ pub(crate) struct IBKR {
     client: Option<Client>,
     account_id: Option<String>,
     spx_id: Option<String>,
+    dates_slice: Option<Vec<String>>,
+    strike_slice: Option<HashMap<String, HashMap<String, Vec<f64>>>>,
     conids_map: Option<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>>,
 }
 
@@ -38,6 +40,8 @@ impl IBKR {
             client: None,
             account_id: None,
             spx_id: None,
+            dates_slice: None,
+            strike_slice: None,
             conids_map: None,
         }
     }
@@ -47,7 +51,6 @@ impl IBKR {
 
     pub(crate) fn init(
         &mut self,
-        current_price: f64,
         discount_value: f64,
         domain: String,
         port: String,
@@ -80,9 +83,10 @@ impl IBKR {
             Err(e) => log_error(format!("Failed to get SPX ID: {}", e)),
         }
 
-        exit(1);
-        match self.get_conids_map(current_price, num_days) {
-            Ok(conids_map) => Ok({
+        match self.get_conids_map(num_days, current_month, next_month) {
+            Ok((dates_slice, strike_slice, conids_map)) => Ok({
+                self.dates_slice = Some(dates_slice);
+                self.strike_slice = Some(strike_slice);
                 self.conids_map = Some(conids_map);
             }),
             Err(e) => {
@@ -97,59 +101,79 @@ impl IBKR {
     // Function that gets a list of conids for all relevant contracts.
     fn get_conids_map(
         &self,
-        current_price: f64,
         num_days: i64,
-    ) -> Result<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>, Box<dyn Error>>
-    {
+        current_month: String,
+        next_month: String,
+    ) -> Result<
+        (
+            Vec<String>,
+            HashMap<String, HashMap<String, Vec<f64>>>,
+            HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>,
+        ),
+        Box<dyn Error>,
+    > {
+        let mut dates_slice: Vec<String> = Vec::new();
+        let mut strike_slice: HashMap<String, HashMap<String, Vec<f64>>> = HashMap::new();
         let mut conids_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>> =
             HashMap::new();
-        let months_slice: Vec<String> = Vec::new();
 
-        for month in months_slice {
-            let search_url: String = format!(
+        let search_url: String = format!(
+            "{}/v1/api/iserver/secdef/info?conid={}&sectype=OPT&month={}&exchange=SMART&strike=0",
+            self.base_url.as_ref().unwrap(),
+            self.spx_id.as_ref().unwrap(),
+            current_month
+        );
+
+        let response: Response = self
+            .client
+            .as_ref()
+            .ok_or("Client is not initialized")?
+            .get(&search_url)
+            .header("Connection", "keep-alive")
+            .header("User-Agent", "trading_bot_rust/1.0")
+            .send()?;
+
+        if !response.status().is_success() {
+            log_error(format!(
+                "{}\nBody: {:?}",
+                response.status(),
+                response.text()?
+            ));
+            exit(1);
+        }
+
+        let search_results: Vec<SecDefInfoResponse> = response.json()?;
+
+        if num_days > 0 {
+            let search_url_2: String = format!(
                 "{}/v1/api/iserver/secdef/info?conid={}&sectype=OPT&month={}&exchange=SMART&strike=0",
                 self.base_url.as_ref().unwrap(),
                 self.spx_id.as_ref().unwrap(),
-                month
+                next_month
             );
 
-            let response: Response = self
+            let response_2: Response = self
                 .client
                 .as_ref()
                 .ok_or("Client is not initialized")?
-                .get(&search_url)
+                .get(&search_url_2)
                 .header("Connection", "keep-alive")
                 .header("User-Agent", "trading_bot_rust/1.0")
                 .send()?;
 
-            if !response.status().is_success() {
+            if !response_2.status().is_success() {
                 log_error(format!(
                     "{}\nBody: {:?}",
-                    response.status(),
-                    response.text()?
+                    response_2.status(),
+                    response_2.text()?
                 ));
                 exit(1);
             }
 
-            let search_results: Vec<SecDefInfoResponse> = response.json()?;
-
-            for contract in &search_results {
-                if contract.trading_class == "SPXW" {
-                    let date: &str = &contract.maturity_date[2..];
-                    if let Some(date_map) = conids_map.get_mut(date) {
-                        if let Some(opt_type_map) = date_map.get_mut(&contract.right) {
-                            if let Some(conid_place) =
-                                opt_type_map.get_mut((&contract.strike).into())
-                            {
-                                *conid_place = contract.conid.to_string();
-                            }
-                        }
-                    }
-                }
-            }
+            let search_results_2: Vec<SecDefInfoResponse> = response_2.json()?;
         }
 
-        Ok(conids_map)
+        Ok((dates_slice, strike_slice, conids_map))
     }
 
     /*
