@@ -47,10 +47,10 @@ impl IBKR {
 
     pub(crate) fn init(
         &mut self,
+        current_price: f64,
         discount_value: f64,
         domain: String,
         port: String,
-        current_price: f64,
         num_days: i64,
     ) -> Result<(), Box<dyn Error>> {
         let mut current_month: String = String::new();

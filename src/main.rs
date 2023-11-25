@@ -31,6 +31,7 @@ fn main() {
     let current_price: f64 = 4500.0;
 
     match ibkr.init(
+        current_price,
         get_discount_value(),
         match get_dotenv_variable("DOMAIN") {
             Ok(val) => val,
@@ -40,7 +41,6 @@ fn main() {
             Ok(val) => val,
             Err(_) => "5000".to_string(),
         },
-        current_price,
         5,
     ) {
         Ok(_) => log_message(format!("Bot is live.")),
