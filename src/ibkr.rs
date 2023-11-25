@@ -9,6 +9,7 @@ use std::{
     error::Error,
     io::{self, ErrorKind},
     process::exit,
+    string,
 };
 
 use crate::{
@@ -53,6 +54,9 @@ impl IBKR {
         current_price: f64,
         num_days: i64,
     ) -> Result<(), Box<dyn Error>> {
+        let mut current_month: String = String::new();
+        let mut next_month: String = String::new();
+
         self.discount_value = Some(discount_value);
         self.base_url = Some(format!("https://{}:{}", domain, port));
         self.live_orders = Some(Vec::new());
@@ -69,11 +73,15 @@ impl IBKR {
             Err(e) => log_error(format!("Failed to get account ID: {}", e)),
         }
         match self.get_spx_conid() {
-            Ok(spx_id) => {
+            Ok((spx_id, month1, month2)) => {
                 self.spx_id = Some(spx_id);
+                current_month = month1;
+                next_month = month2;
             }
             Err(e) => log_error(format!("Failed to get SPX ID: {}", e)),
         }
+
+        exit(1);
         match self.get_conids_map(current_price, num_days) {
             Ok(conids_map) => Ok({
                 self.conids_map = Some(conids_map);
@@ -120,7 +128,7 @@ impl IBKR {
     }
 
     // Function that sends a GET request for SPX ID.
-    fn get_spx_conid(&self) -> Result<String, Box<dyn Error>> {
+    fn get_spx_conid(&self) -> Result<(String, String, String), Box<dyn Error>> {
         let search_url: String = format!(
             "{}/v1/api/iserver/secdef/search?symbol=SPX",
             self.base_url.as_ref().unwrap()
@@ -145,11 +153,28 @@ impl IBKR {
         }
 
         let search_results: Vec<SecDefResponse> = response.json()?;
+        let mut month1: String = String::new();
+        let mut month2: String = String::new();
 
         for result in &search_results {
             if let Some(conid) = &result.conid {
                 if result.company_name == "S&P 500 Stock Index" && !conid.is_empty() {
-                    return Ok(conid.to_string());
+                    if let Some(sections) = &result.sections {
+                        for section in sections {
+                            if section.sec_type == "OPT" {
+                                if let Some(months) = &section.months {
+                                    let months_vec: Vec<&str> = months.split(';').collect();
+                                    if months_vec.len() >= 2 {
+                                        month1 = months_vec[0].to_string();
+                                        month2 = months_vec[1].to_string();
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                    }
+
+                    return Ok((conid.to_string(), month1, month2));
                 }
             }
         }
