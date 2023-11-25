@@ -9,7 +9,6 @@ use std::{
     error::Error,
     io::{self, ErrorKind},
     process::exit,
-    string,
 };
 
 use crate::{
@@ -92,6 +91,72 @@ impl IBKR {
             }
         }
     }
+
+    // Function that gets a list of conids for all relevant contracts.
+    fn get_conids_map(
+        &self,
+        current_price: f64,
+        num_days: i64,
+    ) -> Result<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>, Box<dyn Error>>
+    {
+        let mut conids_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>> =
+            HashMap::new();
+        let months_slice: Vec<String> = Vec::new();
+
+        for month in months_slice {
+            let search_url: String = format!(
+                "{}/v1/api/iserver/secdef/info?conid={}&sectype=OPT&month={}&exchange=SMART&strike=0",
+                self.base_url.as_ref().unwrap(),
+                self.spx_id.as_ref().unwrap(),
+                month
+            );
+
+            let response: Response = self
+                .client
+                .as_ref()
+                .ok_or("Client is not initialized")?
+                .get(&search_url)
+                .header("Connection", "keep-alive")
+                .header("User-Agent", "trading_bot_rust/1.0")
+                .send()?;
+
+            if !response.status().is_success() {
+                log_error(format!(
+                    "{}\nBody: {:?}",
+                    response.status(),
+                    response.text()?
+                ));
+                exit(1);
+            }
+
+            let search_results: Vec<SecDefInfoResponse> = response.json()?;
+
+            for contract in &search_results {
+                if contract.trading_class == "SPXW" {
+                    let date: &str = &contract.maturity_date[2..];
+                    if let Some(date_map) = conids_map.get_mut(date) {
+                        if let Some(opt_type_map) = date_map.get_mut(&contract.right) {
+                            if let Some(conid_place) =
+                                opt_type_map.get_mut((&contract.strike).into())
+                            {
+                                *conid_place = contract.conid.to_string();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(conids_map)
+    }
+
+    /*
+     *
+     *
+     *
+     *
+     *
+     */
 
     // Function that sends a GET request for portfolio ID.
     fn get_account_id(&self) -> Result<String, Box<dyn Error>> {
@@ -181,64 +246,6 @@ impl IBKR {
 
         log_error(format!("No SPX conid found in the response"));
         exit(1);
-    }
-
-    // Function that gets a list of conids for all relevant contracts.
-    fn get_conids_map(
-        &self,
-        current_price: f64,
-        num_days: i64,
-    ) -> Result<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>, Box<dyn Error>>
-    {
-        let mut conids_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>> =
-            HashMap::new();
-        let months_slice: Vec<String> = Vec::new();
-
-        for month in months_slice {
-            let search_url: String = format!(
-                "{}/v1/api/iserver/secdef/info?conid={}&sectype=OPT&month={}&exchange=SMART&strike=0",
-                self.base_url.as_ref().unwrap(),
-                self.spx_id.as_ref().unwrap(),
-                month
-            );
-
-            let response: Response = self
-                .client
-                .as_ref()
-                .ok_or("Client is not initialized")?
-                .get(&search_url)
-                .header("Connection", "keep-alive")
-                .header("User-Agent", "trading_bot_rust/1.0")
-                .send()?;
-
-            if !response.status().is_success() {
-                log_error(format!(
-                    "{}\nBody: {:?}",
-                    response.status(),
-                    response.text()?
-                ));
-                exit(1);
-            }
-
-            let search_results: Vec<SecDefInfoResponse> = response.json()?;
-
-            for contract in &search_results {
-                if contract.trading_class == "SPXW" {
-                    let date: &str = &contract.maturity_date[2..];
-                    if let Some(date_map) = conids_map.get_mut(date) {
-                        if let Some(opt_type_map) = date_map.get_mut(&contract.right) {
-                            if let Some(conid_place) =
-                                opt_type_map.get_mut((&contract.strike).into())
-                            {
-                                *conid_place = contract.conid.to_string();
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        Ok(conids_map)
     }
 
     // Function that sends a GET request for portfolio value.
