@@ -28,10 +28,8 @@ fn main() {
     let fill: String = get_fill_type();
     let mode: bool = get_mode();
     let seconds_to_sleep: u64 = get_seconds_to_sleep();
-    let current_price: f64 = 4500.0;
 
     match ibkr.init(
-        current_price,
         get_discount_value(),
         match get_dotenv_variable("DOMAIN") {
             Ok(val) => val,

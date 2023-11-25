@@ -5,7 +5,7 @@ use std::{collections::HashMap, error::Error, process::exit};
 
 use crate::{
     helpers::{get_boxspread_contenders, get_butterfly_contenders, log_error},
-    structs::{AuthResponse, ChainResponse, Contender, Opt},
+    structs::{ChainResponse, Contender, Opt},
 };
 
 enum OptionType {
@@ -59,80 +59,11 @@ impl ActiveTick {
         self.apikey = Some(apikey.to_string());
         self.num_days = Some(std::time::Duration::from_secs(num_days * 24 * 60 * 60));
         self.client = Some(Client::new());
-        let session_id: String = self.get_session_id()?;
+        let session_id: String = String::new();
         let (dates, strikes) = self.get_spx_dates_and_strikes(&session_id)?;
         self.dates_slice = dates;
         self.strike_slice = strikes;
         Ok(())
-    }
-
-    // Function that returns datesSlice.
-    pub(crate) fn get_dates_slice(&self) -> Vec<String> {
-        match &self.dates_slice {
-            Some(dates) => dates.clone(),
-            None => {
-                log_error(format!("Dates slice is None"));
-                exit(1);
-            }
-        }
-    }
-
-    // Function that returns strikeSlice.
-    pub(crate) fn get_strike_slice(&self) -> HashMap<String, HashMap<String, Vec<f64>>> {
-        match &self.strike_slice {
-            Some(strikes) => strikes.clone(),
-            None => {
-                log_error(format!("Strike slice is None"));
-                exit(1);
-            }
-        }
-    }
-
-    // Function that checks if the user is authorized to use the Activetick API, and returns a sessionID if ok.
-    fn get_session_id(&self) -> Result<String, Box<dyn Error>> {
-        let auth_url: &str = "https://api.activetick.com/authorize.json";
-
-        let params: [(&str, &String); 3] = [
-            (
-                "username",
-                self.username.as_ref().ok_or("Missing username")?,
-            ),
-            (
-                "password",
-                self.password.as_ref().ok_or("Missing password")?,
-            ),
-            ("apikey", self.apikey.as_ref().ok_or("Missing apikey")?),
-        ];
-
-        let response: Response = self
-            .client
-            .as_ref()
-            .ok_or("Client is not initialized")?
-            .get(auth_url)
-            .header("Connection", "keep-alive")
-            .query(&params)
-            .send()?;
-
-        if !response.status().is_success() {
-            log_error(format!(
-                "{}\nBody: {:?}",
-                response.status(),
-                response.text()?
-            ));
-            exit(1);
-        }
-
-        let auth_results: AuthResponse = response.json()?;
-        if auth_results.status == "ok" {
-            if let Some(session_id) = auth_results.sessionid {
-                return Ok(session_id);
-            }
-        } else {
-            log_error(format!("User Unauthorized"));
-        }
-
-        log_error(format!("Failed to get session ID"));
-        exit(1);
     }
 
     // Function that sends a GET request for SPX data, and then gets dates and strikes.
@@ -329,7 +260,7 @@ impl ActiveTick {
         option: &str,
         num_orders: i32,
     ) -> Result<Vec<Contender>, Box<dyn Error>> {
-        let session_id: String = self.get_session_id()?;
+        let session_id: String = String::new();
         let contracts_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>> =
             self.get_spx_data(&session_id)?;
         let mut contender_contracts_total: Vec<Contender> = Vec::new();
