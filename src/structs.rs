@@ -15,6 +15,14 @@ pub(crate) struct SecDefResponse {
     #[serde(rename = "companyName")]
     pub(crate) company_name: String,
     pub(crate) conid: Option<String>,
+    pub(crate) sections: Option<Vec<Section>>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub(crate) struct Section {
+    #[serde(rename = "secType")]
+    pub(crate) sec_type: String,
+    pub(crate) months: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
