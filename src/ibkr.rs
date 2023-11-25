@@ -46,9 +46,6 @@ impl IBKR {
         }
     }
 
-    //   dates_slice: Vec<String>,
-    //   strike_slice: HashMap<String, HashMap<String, Vec<f64>>>,
-
     pub(crate) fn init(
         &mut self,
         discount_value: f64,
