@@ -92,6 +92,8 @@ impl IBKR {
         }
     }
 
+    // TODO: INIT DATES SLICES AND STRIKES SLICES AS WELL, FIX CONID INIT
+
     // Function that gets a list of conids for all relevant contracts.
     fn get_conids_map(
         &self,
