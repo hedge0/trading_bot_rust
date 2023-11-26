@@ -93,6 +93,8 @@ impl IBKR {
         }
     }
 
+    // TODO: Add fix for conids to only start at current date
+
     /*
      *
      *
