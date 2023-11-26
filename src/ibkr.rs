@@ -82,16 +82,18 @@ impl IBKR {
         }
 
         match self.get_conids_map(num_days, current_month, next_month) {
-            Ok((dates_slice, strike_slice, conids_map)) => Ok({
+            Ok((dates_slice, strike_slice, conids_map)) => {
                 self.dates_slice = Some(dates_slice);
                 self.strike_slice = Some(strike_slice);
                 self.conids_map = Some(conids_map);
-            }),
+            }
             Err(e) => {
                 log_error(format!("Failed to init conid map: {}", e));
                 exit(1);
             }
         }
+
+        Ok(())
     }
 
     // TODO: make url
