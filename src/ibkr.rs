@@ -1,3 +1,4 @@
+use chrono::Local;
 use ordered_float::OrderedFloat;
 use reqwest::{
     blocking::{Client, ClientBuilder, Response},
@@ -12,7 +13,7 @@ use std::{
 };
 
 use crate::{
-    helpers::{build_request_data, log_error, log_message},
+    helpers::{build_request_data, calc_time_difference, log_error, log_message},
     structs::{
         AccountResponse, Confirmation, Contender, PortfolioResponse, RequestDataStruct,
         SecDefInfoResponse, SecDefResponse,
@@ -93,7 +94,7 @@ impl IBKR {
         }
     }
 
-    // TODO: Add fix for conids to only start at current date
+    // TODO: make url
 
     /*
      *
@@ -238,55 +239,62 @@ impl IBKR {
         }
 
         let search_results: Vec<SecDefInfoResponse> = response.json()?;
+        let current_date: String = Local::now().format("%y%m%d").to_string();
 
         for sec_def_info in search_results.iter() {
             let type_opt: &String = &sec_def_info.right;
-            let exp_date: &String = &sec_def_info.maturity_date;
+            let exp_date: String = sec_def_info
+                .maturity_date
+                .get(2..)
+                .unwrap_or(&sec_def_info.maturity_date)
+                .to_string();
             let strike: OrderedFloat<f64> = OrderedFloat(sec_def_info.strike);
             let conid: f64 = sec_def_info.conid;
 
-            if !strike_slice.contains_key(exp_date) {
-                num_days -= 1;
-                if num_days < 0 {
-                    break;
+            if calc_time_difference(&current_date, &exp_date) > -1 {
+                if !strike_slice.contains_key(&exp_date) {
+                    num_days -= 1;
+                    if num_days < 0 {
+                        break;
+                    }
+
+                    dates_slice.push(exp_date.to_string());
+
+                    strike_slice.insert(exp_date.to_string(), HashMap::new());
+                    strike_slice
+                        .get_mut(&exp_date)
+                        .unwrap()
+                        .insert("C".to_string(), Vec::new());
+                    strike_slice
+                        .get_mut(&exp_date)
+                        .unwrap()
+                        .insert("P".to_string(), Vec::new());
+
+                    conids_map.insert(exp_date.to_string(), HashMap::new());
+                    conids_map
+                        .get_mut(&exp_date)
+                        .unwrap()
+                        .insert("C".to_string(), HashMap::new());
+                    conids_map
+                        .get_mut(&exp_date)
+                        .unwrap()
+                        .insert("P".to_string(), HashMap::new());
                 }
 
-                dates_slice.push(exp_date.to_string());
-
-                strike_slice.insert(exp_date.to_string(), HashMap::new());
                 strike_slice
-                    .get_mut(exp_date)
+                    .get_mut(&exp_date)
                     .unwrap()
-                    .insert("C".to_string(), Vec::new());
-                strike_slice
-                    .get_mut(exp_date)
+                    .get_mut(type_opt)
                     .unwrap()
-                    .insert("P".to_string(), Vec::new());
+                    .push(*strike);
 
-                conids_map.insert(exp_date.to_string(), HashMap::new());
                 conids_map
-                    .get_mut(exp_date)
+                    .get_mut(&exp_date)
                     .unwrap()
-                    .insert("C".to_string(), HashMap::new());
-                conids_map
-                    .get_mut(exp_date)
+                    .get_mut(type_opt)
                     .unwrap()
-                    .insert("P".to_string(), HashMap::new());
+                    .insert(strike, conid.to_string());
             }
-
-            strike_slice
-                .get_mut(exp_date)
-                .unwrap()
-                .get_mut(type_opt)
-                .unwrap()
-                .push(*strike);
-
-            conids_map
-                .get_mut(exp_date)
-                .unwrap()
-                .get_mut(type_opt)
-                .unwrap()
-                .insert(strike, conid.to_string());
         }
 
         if num_days > 0 {
@@ -319,11 +327,15 @@ impl IBKR {
 
             for sec_def_info in search_results_2.iter() {
                 let type_opt: &String = &sec_def_info.right;
-                let exp_date: &String = &sec_def_info.maturity_date;
+                let exp_date: String = sec_def_info
+                    .maturity_date
+                    .get(2..)
+                    .unwrap_or(&sec_def_info.maturity_date)
+                    .to_string();
                 let strike: OrderedFloat<f64> = OrderedFloat(sec_def_info.strike);
                 let conid: f64 = sec_def_info.conid;
 
-                if !strike_slice.contains_key(exp_date) {
+                if !strike_slice.contains_key(&exp_date) {
                     num_days -= 1;
                     if num_days < 0 {
                         break;
@@ -333,34 +345,34 @@ impl IBKR {
 
                     strike_slice.insert(exp_date.to_string(), HashMap::new());
                     strike_slice
-                        .get_mut(exp_date)
+                        .get_mut(&exp_date)
                         .unwrap()
                         .insert("C".to_string(), Vec::new());
                     strike_slice
-                        .get_mut(exp_date)
+                        .get_mut(&exp_date)
                         .unwrap()
                         .insert("P".to_string(), Vec::new());
 
                     conids_map.insert(exp_date.to_string(), HashMap::new());
                     conids_map
-                        .get_mut(exp_date)
+                        .get_mut(&exp_date)
                         .unwrap()
                         .insert("C".to_string(), HashMap::new());
                     conids_map
-                        .get_mut(exp_date)
+                        .get_mut(&exp_date)
                         .unwrap()
                         .insert("P".to_string(), HashMap::new());
                 }
 
                 strike_slice
-                    .get_mut(exp_date)
+                    .get_mut(&exp_date)
                     .unwrap()
                     .get_mut(type_opt)
                     .unwrap()
                     .push(*strike);
 
                 conids_map
-                    .get_mut(exp_date)
+                    .get_mut(&exp_date)
                     .unwrap()
                     .get_mut(type_opt)
                     .unwrap()
@@ -378,11 +390,6 @@ impl IBKR {
                 .unwrap()
                 .sort_by(|a, b| a.partial_cmp(b).unwrap());
         }
-
-        // Printing the contents of the data structures
-        println!("Dates Slice: {:?}", dates_slice);
-        println!("Strike Slice: {:?}", strike_slice);
-        println!("Conids Map: {:?}", conids_map);
 
         Ok((dates_slice, strike_slice, conids_map))
     }
