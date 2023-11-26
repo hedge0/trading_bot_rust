@@ -93,83 +93,6 @@ impl IBKR {
         }
     }
 
-    // TODO: INIT DATES SLICES AND STRIKES SLICES AS WELL, FIX CONID INIT
-
-    // Function that gets a list of conids for all relevant contracts.
-    fn get_conids_map(
-        &self,
-        num_days: i64,
-        current_month: String,
-        next_month: String,
-    ) -> Result<
-        (
-            Vec<String>,
-            HashMap<String, HashMap<String, Vec<f64>>>,
-            HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>,
-        ),
-        Box<dyn Error>,
-    > {
-        let mut dates_slice: Vec<String> = Vec::new();
-        let mut strike_slice: HashMap<String, HashMap<String, Vec<f64>>> = HashMap::new();
-        let mut conids_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>> =
-            HashMap::new();
-
-        let search_url: String = format!(
-            "{}/v1/api/iserver/secdef/info?conid={}&sectype=OPT&month={}&exchange=SMART&strike=0",
-            self.base_url.as_ref().unwrap(),
-            self.spx_id.as_ref().unwrap(),
-            current_month
-        );
-
-        let response: Response = self
-            .client
-            .as_ref()
-            .ok_or("Client is not initialized")?
-            .get(&search_url)
-            .header("Connection", "keep-alive")
-            .header("User-Agent", "trading_bot_rust/1.0")
-            .send()?;
-
-        if !response.status().is_success() {
-            log_error(format!(
-                "{}\nBody: {:?}",
-                response.status(),
-                response.text()?
-            ));
-            exit(1);
-        }
-
-        let search_url_2: String = format!(
-            "{}/v1/api/iserver/secdef/info?conid={}&sectype=OPT&month={}&exchange=SMART&strike=0",
-            self.base_url.as_ref().unwrap(),
-            self.spx_id.as_ref().unwrap(),
-            next_month
-        );
-
-        let response_2: Response = self
-            .client
-            .as_ref()
-            .ok_or("Client is not initialized")?
-            .get(&search_url_2)
-            .header("Connection", "keep-alive")
-            .header("User-Agent", "trading_bot_rust/1.0")
-            .send()?;
-
-        if !response_2.status().is_success() {
-            log_error(format!(
-                "{}\nBody: {:?}",
-                response_2.status(),
-                response_2.text()?
-            ));
-            exit(1);
-        }
-
-        let search_results: Vec<SecDefInfoResponse> = response.json()?;
-        let search_results_2: Vec<SecDefInfoResponse> = response_2.json()?;
-
-        Ok((dates_slice, strike_slice, conids_map))
-    }
-
     /*
      *
      *
@@ -266,6 +189,200 @@ impl IBKR {
 
         log_error(format!("No SPX conid found in the response"));
         exit(1);
+    }
+
+    // Function that gets a list of conids for all relevant contracts.
+    fn get_conids_map(
+        &self,
+        mut num_days: i64,
+        current_month: String,
+        next_month: String,
+    ) -> Result<
+        (
+            Vec<String>,
+            HashMap<String, HashMap<String, Vec<f64>>>,
+            HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>,
+        ),
+        Box<dyn Error>,
+    > {
+        let mut dates_slice: Vec<String> = Vec::new();
+        let mut strike_slice: HashMap<String, HashMap<String, Vec<f64>>> = HashMap::new();
+        let mut conids_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>> =
+            HashMap::new();
+
+        let search_url: String = format!(
+            "{}/v1/api/iserver/secdef/info?conid={}&sectype=OPT&month={}&exchange=SMART&strike=0",
+            self.base_url.as_ref().unwrap(),
+            self.spx_id.as_ref().unwrap(),
+            current_month
+        );
+
+        let response: Response = self
+            .client
+            .as_ref()
+            .ok_or("Client is not initialized")?
+            .get(&search_url)
+            .header("Connection", "keep-alive")
+            .header("User-Agent", "trading_bot_rust/1.0")
+            .send()?;
+
+        if !response.status().is_success() {
+            log_error(format!(
+                "{}\nBody: {:?}",
+                response.status(),
+                response.text()?
+            ));
+            exit(1);
+        }
+
+        let search_results: Vec<SecDefInfoResponse> = response.json()?;
+
+        for sec_def_info in search_results.iter() {
+            let type_opt: &String = &sec_def_info.right;
+            let exp_date: &String = &sec_def_info.maturity_date;
+            let strike: OrderedFloat<f64> = OrderedFloat(sec_def_info.strike);
+            let conid: f64 = sec_def_info.conid;
+
+            if !strike_slice.contains_key(exp_date) {
+                num_days -= 1;
+                if num_days < 0 {
+                    break;
+                }
+
+                dates_slice.push(exp_date.to_string());
+
+                strike_slice.insert(exp_date.to_string(), HashMap::new());
+                strike_slice
+                    .get_mut(exp_date)
+                    .unwrap()
+                    .insert("C".to_string(), Vec::new());
+                strike_slice
+                    .get_mut(exp_date)
+                    .unwrap()
+                    .insert("P".to_string(), Vec::new());
+
+                conids_map.insert(exp_date.to_string(), HashMap::new());
+                conids_map
+                    .get_mut(exp_date)
+                    .unwrap()
+                    .insert("C".to_string(), HashMap::new());
+                conids_map
+                    .get_mut(exp_date)
+                    .unwrap()
+                    .insert("P".to_string(), HashMap::new());
+            }
+
+            strike_slice
+                .get_mut(exp_date)
+                .unwrap()
+                .get_mut(type_opt)
+                .unwrap()
+                .push(*strike);
+
+            conids_map
+                .get_mut(exp_date)
+                .unwrap()
+                .get_mut(type_opt)
+                .unwrap()
+                .insert(strike, conid.to_string());
+        }
+
+        if num_days > 0 {
+            let search_url_2: String = format!(
+                "{}/v1/api/iserver/secdef/info?conid={}&sectype=OPT&month={}&exchange=SMART&strike=0",
+                self.base_url.as_ref().unwrap(),
+                self.spx_id.as_ref().unwrap(),
+                next_month
+            );
+
+            let response_2: Response = self
+                .client
+                .as_ref()
+                .ok_or("Client is not initialized")?
+                .get(&search_url_2)
+                .header("Connection", "keep-alive")
+                .header("User-Agent", "trading_bot_rust/1.0")
+                .send()?;
+
+            if !response_2.status().is_success() {
+                log_error(format!(
+                    "{}\nBody: {:?}",
+                    response_2.status(),
+                    response_2.text()?
+                ));
+                exit(1);
+            }
+
+            let search_results_2: Vec<SecDefInfoResponse> = response_2.json()?;
+
+            for sec_def_info in search_results_2.iter() {
+                let type_opt: &String = &sec_def_info.right;
+                let exp_date: &String = &sec_def_info.maturity_date;
+                let strike: OrderedFloat<f64> = OrderedFloat(sec_def_info.strike);
+                let conid: f64 = sec_def_info.conid;
+
+                if !strike_slice.contains_key(exp_date) {
+                    num_days -= 1;
+                    if num_days < 0 {
+                        break;
+                    }
+
+                    dates_slice.push(exp_date.to_string());
+
+                    strike_slice.insert(exp_date.to_string(), HashMap::new());
+                    strike_slice
+                        .get_mut(exp_date)
+                        .unwrap()
+                        .insert("C".to_string(), Vec::new());
+                    strike_slice
+                        .get_mut(exp_date)
+                        .unwrap()
+                        .insert("P".to_string(), Vec::new());
+
+                    conids_map.insert(exp_date.to_string(), HashMap::new());
+                    conids_map
+                        .get_mut(exp_date)
+                        .unwrap()
+                        .insert("C".to_string(), HashMap::new());
+                    conids_map
+                        .get_mut(exp_date)
+                        .unwrap()
+                        .insert("P".to_string(), HashMap::new());
+                }
+
+                strike_slice
+                    .get_mut(exp_date)
+                    .unwrap()
+                    .get_mut(type_opt)
+                    .unwrap()
+                    .push(*strike);
+
+                conids_map
+                    .get_mut(exp_date)
+                    .unwrap()
+                    .get_mut(type_opt)
+                    .unwrap()
+                    .insert(strike, conid.to_string());
+            }
+        }
+
+        for (_, strikes) in strike_slice.iter_mut() {
+            strikes
+                .get_mut("C")
+                .unwrap()
+                .sort_by(|a, b| a.partial_cmp(b).unwrap());
+            strikes
+                .get_mut("P")
+                .unwrap()
+                .sort_by(|a, b| a.partial_cmp(b).unwrap());
+        }
+
+        // Printing the contents of the data structures
+        println!("Dates Slice: {:?}", dates_slice);
+        println!("Strike Slice: {:?}", strike_slice);
+        println!("Conids Map: {:?}", conids_map);
+
+        Ok((dates_slice, strike_slice, conids_map))
     }
 
     // Function that sends a GET request for portfolio value.
