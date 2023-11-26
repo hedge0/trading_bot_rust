@@ -27,6 +27,7 @@ pub(crate) struct IBKR {
     client: Option<Client>,
     account_id: Option<String>,
     spx_id: Option<String>,
+    conids_string: Option<String>,
     dates_slice: Option<Vec<String>>,
     strike_slice: Option<HashMap<String, HashMap<String, Vec<f64>>>>,
     conids_map: Option<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>>,
@@ -41,6 +42,7 @@ impl IBKR {
             client: None,
             account_id: None,
             spx_id: None,
+            conids_string: None,
             dates_slice: None,
             strike_slice: None,
             conids_map: None,
@@ -82,7 +84,8 @@ impl IBKR {
         }
 
         match self.get_conids_map(num_days, current_month, next_month) {
-            Ok((dates_slice, strike_slice, conids_map)) => {
+            Ok((conids_string, dates_slice, strike_slice, conids_map)) => {
+                self.conids_string = Some(conids_string);
                 self.dates_slice = Some(dates_slice);
                 self.strike_slice = Some(strike_slice);
                 self.conids_map = Some(conids_map);
@@ -204,12 +207,14 @@ impl IBKR {
         next_month: String,
     ) -> Result<
         (
+            String,
             Vec<String>,
             HashMap<String, HashMap<String, Vec<f64>>>,
             HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>,
         ),
         Box<dyn Error>,
     > {
+        let mut conids_string: String = String::new();
         let mut dates_slice: Vec<String> = Vec::new();
         let mut strike_slice: HashMap<String, HashMap<String, Vec<f64>>> = HashMap::new();
         let mut conids_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>> =
@@ -393,7 +398,7 @@ impl IBKR {
                 .sort_by(|a, b| a.partial_cmp(b).unwrap());
         }
 
-        Ok((dates_slice, strike_slice, conids_map))
+        Ok((conids_string, dates_slice, strike_slice, conids_map))
     }
 
     // Function that sends a GET request for portfolio value.
