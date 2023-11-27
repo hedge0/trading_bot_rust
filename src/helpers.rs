@@ -261,63 +261,6 @@ pub(crate) fn calc_rank_value(avg_ask: f64, arb_val: f64, current_date: &str, da
     (avg_ask * arb_val) / (difference as f64)
 }
 
-// Function that converts dates to the correct format.
-pub(crate) fn convert_date(input_date: &str) -> String {
-    let parsed_time: NaiveDate = NaiveDate::parse_from_str(input_date, "%y%m%d").unwrap();
-    let month_abbreviation: String = parsed_time.format("%b").to_string().to_uppercase();
-    let year_abbreviation: String = parsed_time.format("%y").to_string();
-
-    format!("{}{}", month_abbreviation, year_abbreviation)
-}
-
-// Function that inits the conids map to have a proper structure for later.
-pub(crate) fn generate_conids_structure(
-    dates_slice: &[String],
-    strike_slice: &HashMap<String, HashMap<String, Vec<f64>>>,
-) -> HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>> {
-    let mut conids_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>> =
-        HashMap::new();
-
-    for date in dates_slice {
-        conids_map.insert(
-            date.clone(),
-            ["C", "P"]
-                .iter()
-                .map(|&opt_type| {
-                    let strikes: Vec<f64> = strike_slice
-                        .get(date)
-                        .and_then(|m| m.get(opt_type))
-                        .cloned()
-                        .unwrap_or_else(Vec::new);
-                    (
-                        opt_type.to_string(),
-                        strikes
-                            .into_iter()
-                            .map(|s| (OrderedFloat(s), String::new()))
-                            .collect(),
-                    )
-                })
-                .collect(),
-        );
-    }
-
-    conids_map
-}
-
-// Function that inits the months slice with the correct string formats for later when called into the api endpoint.
-pub(crate) fn generate_months_slice(dates_slice: &[String]) -> Vec<String> {
-    let mut months_slice: Vec<String> = Vec::new();
-
-    for date in dates_slice {
-        let formatted_date: String = convert_date(date);
-        if !months_slice.contains(&formatted_date) {
-            months_slice.push(formatted_date);
-        }
-    }
-
-    months_slice
-}
-
 // Function that builds butterfly order body.
 pub(crate) fn build_butterfly_order(
     contract: &Contender,
