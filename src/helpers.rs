@@ -378,6 +378,7 @@ pub(crate) fn get_butterfly_contenders(
     contracts_map: &HashMap<String, Opt>,
     dates_slice: &Vec<String>,
     strike_slice: &HashMap<String, HashMap<String, Vec<f64>>>,
+    conids_map: &HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>,
 ) -> Result<Vec<Contender>, Box<dyn Error>> {
     let mut contender_contracts: Vec<Contender> = Vec::new();
     let now: chrono::DateTime<Local> = Local::now();
@@ -474,6 +475,7 @@ pub(crate) fn get_boxspread_contenders(
     contracts_map: &HashMap<String, Opt>,
     dates_slice: &Vec<String>,
     strike_slice: &HashMap<String, HashMap<String, Vec<f64>>>,
+    conids_map: &HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>,
 ) -> Result<Vec<Contender>, Box<dyn Error>> {
     let mut contender_contracts: Vec<Contender> = Vec::new();
     let now: chrono::DateTime<Local> = Local::now();
