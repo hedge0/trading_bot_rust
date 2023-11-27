@@ -34,6 +34,18 @@ pub(crate) struct SecDefInfoResponse {
     pub(crate) strike: f64,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub(crate) struct MarketDataResponse {
+    #[serde(rename = "conidEx")]
+    pub(crate) conid_ex: String,
+    #[serde(rename = "84")]
+    pub(crate) field_84: Option<String>,
+    #[serde(rename = "85")]
+    pub(crate) field_85: String,
+    #[serde(rename = "86")]
+    pub(crate) field_86: String,
+}
+
 #[derive(Serialize, Deserialize)]
 pub(crate) struct PortfolioResponse {
     #[serde(rename = "equitywithloanvalue")]
@@ -81,23 +93,6 @@ pub(crate) struct Order {
 #[derive(Serialize, Deserialize)]
 pub(crate) struct OrdersResponse {
     pub(crate) orders: Vec<Order>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub(crate) struct ChainResponse {
-    pub(crate) rows: Vec<ChainRow>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub(crate) struct ChainRow {
-    pub(crate) st: String,
-    pub(crate) data: Vec<ChainData>,
-    pub(crate) s: String,
-}
-
-#[derive(Serialize, Deserialize)]
-pub(crate) struct ChainData {
-    pub(crate) v: String,
 }
 
 #[derive(Serialize, Deserialize)]
