@@ -115,6 +115,8 @@ impl IBKR {
             }
         }
 
+        self.get_spx_data()?;
+
         exit(0);
 
         Ok(())
@@ -127,24 +129,41 @@ impl IBKR {
         &self,
     ) -> Result<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>>, Box<dyn Error>>
     {
+        let chain_url: String = format!(
+            "{}/v1/api/iserver/marketdata/snapshot",
+            self.base_url.as_ref().unwrap()
+        );
+
+        let params: [(&str, &str); 2] = [("conids", ""), ("fields", "84,85,86")];
+
+        exit(0);
+        /*
+         *
+         *
+         *
+         *
+         *
+         *
+         *
+         *
+         *
+         *
+         *
+         *
+         *
+         *
+         *
+         */
+
         let chain_url: &str = "https://api.activetick.com/chain.json";
-        let current_time: chrono::DateTime<Local> = chrono::Local::now();
-        let future_time: chrono::DateTime<Local> =
-            current_time + std::time::Duration::from_secs(1 * 24 * 60 * 60);
 
         let params: [(&str, &str); 7] = [
             ("sessionid", ""),
             ("key", "SPXW_S U"),
             ("chaintype", "equity_options"),
             ("columns", "b,a,asz"),
-            (
-                "begin_maturity_time",
-                &current_time.format("%Y-%m-%dT%H:%M:%S").to_string(),
-            ),
-            (
-                "end_maturity_time",
-                &future_time.format("%Y-%m-%dT%H:%M:%S").to_string(),
-            ),
+            ("begin_maturity_time", ""),
+            ("end_maturity_time", ""),
             ("ignore_empty", "false"),
         ];
 
