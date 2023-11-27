@@ -135,6 +135,8 @@ impl IBKR {
             .strike_slice
             .as_ref()
             .ok_or("strike slice is not set")?;
+        let conids_map: &HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>> =
+            self.conids_map.as_ref().ok_or("conids map is not set")?;
 
         match OptionType::from_str(option).ok_or("Invalid option type")? {
             OptionType::Butterfly => {
@@ -142,6 +144,7 @@ impl IBKR {
                     &contracts_map,
                     dates_slice,
                     strike_slice,
+                    conids_map,
                 )?);
             }
             OptionType::BoxSpread => {
@@ -149,6 +152,7 @@ impl IBKR {
                     &contracts_map,
                     dates_slice,
                     strike_slice,
+                    conids_map,
                 )?);
             }
             OptionType::All => {
@@ -156,11 +160,13 @@ impl IBKR {
                     &contracts_map,
                     dates_slice,
                     strike_slice,
+                    conids_map,
                 )?);
                 contender_contracts_total.extend(get_boxspread_contenders(
                     &contracts_map,
                     dates_slice,
                     strike_slice,
+                    conids_map,
                 )?);
             }
         }
