@@ -115,7 +115,7 @@ impl IBKR {
             }
         }
 
-        self.get_spx_data()?;
+        self.init_spx_data()?;
 
         exit(0);
 
@@ -124,11 +124,8 @@ impl IBKR {
 
     // TODO: make url
 
-    // Function that sends a GET request for SPX data, and then parses the response.
-    fn get_spx_data(
-        &self,
-    ) -> Result<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>>, Box<dyn Error>>
-    {
+    // Function that sends a GET request for SPX data in order to init the response.
+    fn init_spx_data(&self) -> Result<(), Box<dyn std::error::Error>> {
         let chain_url: String = format!(
             "{}/v1/api/iserver/marketdata/snapshot",
             self.base_url.as_ref().unwrap()
@@ -136,25 +133,14 @@ impl IBKR {
 
         let params: [(&str, &str); 2] = [("conids", ""), ("fields", "84,85,86")];
 
-        exit(0);
-        /*
-         *
-         *
-         *
-         *
-         *
-         *
-         *
-         *
-         *
-         *
-         *
-         *
-         *
-         *
-         *
-         */
+        Ok(())
+    }
 
+    // Function that sends a GET request for SPX data, and then parses the response.
+    fn get_spx_data(
+        &self,
+    ) -> Result<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>>, Box<dyn Error>>
+    {
         let chain_url: &str = "https://api.activetick.com/chain.json";
 
         let params: [(&str, &str); 7] = [
