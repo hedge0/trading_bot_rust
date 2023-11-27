@@ -9,38 +9,19 @@ use crate::{
 };
 
 pub(crate) struct ActiveTick {
-    username: Option<String>,
-    password: Option<String>,
-    apikey: Option<String>,
     num_days: Option<std::time::Duration>,
     client: Option<Client>,
-    dates_slice: Option<Vec<String>>,
-    strike_slice: Option<HashMap<String, HashMap<String, Vec<f64>>>>,
 }
 
 impl ActiveTick {
     pub(crate) fn new() -> Self {
         ActiveTick {
-            username: None,
-            password: None,
-            apikey: None,
             num_days: None,
             client: None,
-            dates_slice: None,
-            strike_slice: None,
         }
     }
 
-    pub(crate) fn init(
-        &mut self,
-        username: &str,
-        password: &str,
-        apikey: &str,
-        num_days: u64,
-    ) -> Result<(), Box<dyn Error>> {
-        self.username = Some(username.to_string());
-        self.password = Some(password.to_string());
-        self.apikey = Some(apikey.to_string());
+    pub(crate) fn init(&mut self, num_days: u64) -> Result<(), Box<dyn Error>> {
         self.num_days = Some(std::time::Duration::from_secs(num_days * 24 * 60 * 60));
         self.client = Some(Client::new());
         Ok(())
