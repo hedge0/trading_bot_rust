@@ -96,6 +96,8 @@ impl IBKR {
             }
         }
 
+        exit(0);
+
         Ok(())
     }
 
