@@ -46,7 +46,7 @@ pub(crate) struct IBKR {
     client: Option<Client>,
     account_id: Option<String>,
     spx_id: Option<String>,
-    conids_string: Option<String>,
+    conids_strings: Option<Vec<String>>,
     dates_slice: Option<Vec<String>>,
     strike_slice: Option<HashMap<String, HashMap<String, Vec<f64>>>>,
     conids_map: Option<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>>,
@@ -61,7 +61,7 @@ impl IBKR {
             client: None,
             account_id: None,
             spx_id: None,
-            conids_string: None,
+            conids_strings: None,
             dates_slice: None,
             strike_slice: None,
             conids_map: None,
@@ -103,8 +103,8 @@ impl IBKR {
         }
 
         match self.get_conids_map(num_days, current_month, next_month) {
-            Ok((conids_string, dates_slice, strike_slice, conids_map)) => {
-                self.conids_string = Some(conids_string);
+            Ok((conids_strings, dates_slice, strike_slice, conids_map)) => {
+                self.conids_strings = Some(conids_strings);
                 self.dates_slice = Some(dates_slice);
                 self.strike_slice = Some(strike_slice);
                 self.conids_map = Some(conids_map);
@@ -385,14 +385,14 @@ impl IBKR {
         next_month: String,
     ) -> Result<
         (
-            String,
+            Vec<String>,
             Vec<String>,
             HashMap<String, HashMap<String, Vec<f64>>>,
             HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>,
         ),
         Box<dyn Error>,
     > {
-        let mut conids_string: String = String::new();
+        let mut conids_strings: Vec<String> = Vec::new();
         let mut dates_slice: Vec<String> = Vec::new();
         let mut strike_slice: HashMap<String, HashMap<String, Vec<f64>>> = HashMap::new();
         let mut conids_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>> =
@@ -425,6 +425,8 @@ impl IBKR {
 
         let search_results: Vec<SecDefInfoResponse> = response.json()?;
         let current_date: String = Local::now().format("%y%m%d").to_string();
+        let mut conids_str: String = String::new();
+        let mut counter: i32 = 0;
 
         for sec_def_info in search_results.iter() {
             let type_opt: &String = &sec_def_info.right;
@@ -479,6 +481,16 @@ impl IBKR {
                     .get_mut(type_opt)
                     .unwrap()
                     .insert(strike, conid.to_string());
+
+                conids_str.push_str(&conid.to_string());
+                conids_str.push_str(",");
+                counter += 1;
+
+                if counter == 300 {
+                    conids_strings.push(conids_str);
+                    conids_str = String::new();
+                    counter = 0;
+                }
             }
         }
 
@@ -562,7 +574,21 @@ impl IBKR {
                     .get_mut(type_opt)
                     .unwrap()
                     .insert(strike, conid.to_string());
+
+                conids_str.push_str(&conid.to_string());
+                conids_str.push_str(",");
+                counter += 1;
+
+                if counter == 300 {
+                    conids_strings.push(conids_str);
+                    conids_str = String::new();
+                    counter = 0;
+                }
             }
+        }
+
+        if !conids_str.is_empty() {
+            conids_strings.push(conids_str);
         }
 
         for (_, strikes) in strike_slice.iter_mut() {
@@ -576,7 +602,7 @@ impl IBKR {
                 .sort_by(|a, b| a.partial_cmp(b).unwrap());
         }
 
-        Ok((conids_string, dates_slice, strike_slice, conids_map))
+        Ok((conids_strings, dates_slice, strike_slice, conids_map))
     }
 
     // Function that sends a GET request for portfolio value.

@@ -38,7 +38,7 @@ fn main() {
             Ok(val) => val,
             Err(_) => "5000".to_string(),
         },
-        5,
+        3,
     ) {
         Ok(_) => log_message(format!("Bot is live.")),
         Err(e) => log_error(format!("{}", e)),
