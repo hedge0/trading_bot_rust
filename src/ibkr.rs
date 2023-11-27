@@ -13,12 +13,31 @@ use std::{
 };
 
 use crate::{
-    helpers::{build_request_data, calc_time_difference, log_error, log_message},
+    helpers::{
+        build_request_data, calc_time_difference, get_boxspread_contenders,
+        get_butterfly_contenders, log_error, log_message,
+    },
     structs::{
-        AccountResponse, Confirmation, Contender, PortfolioResponse, RequestDataStruct,
+        AccountResponse, Confirmation, Contender, Opt, PortfolioResponse, RequestDataStruct,
         SecDefInfoResponse, SecDefResponse,
     },
 };
+
+enum OptionType {
+    Butterfly,
+    BoxSpread,
+    All,
+}
+
+impl OptionType {
+    fn from_str(s: &str) -> Option<Self> {
+        match s {
+            "1" => Some(OptionType::Butterfly),
+            "2" => Some(OptionType::BoxSpread),
+            _ => Some(OptionType::All),
+        }
+    }
+}
 
 pub(crate) struct IBKR {
     discount_value: Option<f64>,
@@ -102,6 +121,63 @@ impl IBKR {
     }
 
     // TODO: make url
+
+    // Function that returns a slice of the top arbs given the number of orders.
+    pub(crate) fn get_contender_contracts(
+        &self,
+        option: &str,
+        num_orders: i32,
+    ) -> Result<Vec<Contender>, Box<dyn Error>> {
+        let contracts_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>> =
+            HashMap::new();
+        //    self.get_spx_data()?;
+        let mut contender_contracts_total: Vec<Contender> = Vec::new();
+
+        let dates_slice: &Vec<String> =
+            self.dates_slice.as_ref().ok_or("dates slice is not set")?;
+        let strike_slice: &HashMap<String, HashMap<String, Vec<f64>>> = self
+            .strike_slice
+            .as_ref()
+            .ok_or("strike slice is not set")?;
+
+        match OptionType::from_str(option).ok_or("Invalid option type")? {
+            OptionType::Butterfly => {
+                contender_contracts_total.extend(get_butterfly_contenders(
+                    &contracts_map,
+                    dates_slice,
+                    strike_slice,
+                )?);
+            }
+            OptionType::BoxSpread => {
+                contender_contracts_total.extend(get_boxspread_contenders(
+                    &contracts_map,
+                    dates_slice,
+                    strike_slice,
+                )?);
+            }
+            OptionType::All => {
+                contender_contracts_total.extend(get_butterfly_contenders(
+                    &contracts_map,
+                    dates_slice,
+                    strike_slice,
+                )?);
+                contender_contracts_total.extend(get_boxspread_contenders(
+                    &contracts_map,
+                    dates_slice,
+                    strike_slice,
+                )?);
+            }
+        }
+
+        contender_contracts_total.sort_by(|a, b| b.rank_value.partial_cmp(&a.rank_value).unwrap());
+
+        let num_orders_usize: usize = num_orders as usize;
+        if contender_contracts_total.len() > num_orders_usize {
+            contender_contracts_total.truncate(num_orders_usize);
+        }
+
+        Ok(contender_contracts_total)
+    }
 
     /*
      *

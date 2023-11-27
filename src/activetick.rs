@@ -4,25 +4,9 @@ use reqwest::blocking::{Client, Response};
 use std::{collections::HashMap, error::Error, process::exit};
 
 use crate::{
-    helpers::{get_boxspread_contenders, get_butterfly_contenders, log_error},
-    structs::{ChainResponse, Contender, Opt},
+    helpers::log_error,
+    structs::{ChainResponse, Opt},
 };
-
-enum OptionType {
-    Butterfly,
-    BoxSpread,
-    All,
-}
-
-impl OptionType {
-    fn from_str(s: &str) -> Option<Self> {
-        match s {
-            "1" => Some(OptionType::Butterfly),
-            "2" => Some(OptionType::BoxSpread),
-            _ => Some(OptionType::All),
-        }
-    }
-}
 
 pub(crate) struct ActiveTick {
     username: Option<String>,
@@ -59,14 +43,12 @@ impl ActiveTick {
         self.apikey = Some(apikey.to_string());
         self.num_days = Some(std::time::Duration::from_secs(num_days * 24 * 60 * 60));
         self.client = Some(Client::new());
-        let session_id: String = String::new();
         Ok(())
     }
 
     // Function that sends a GET request for SPX data, and then parses the response.
     fn get_spx_data(
         &self,
-        session_id: &str,
     ) -> Result<HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>>, Box<dyn Error>>
     {
         let chain_url: &str = "https://api.activetick.com/chain.json";
@@ -75,7 +57,7 @@ impl ActiveTick {
             current_time + self.num_days.ok_or("num_days is not set")?;
 
         let params: [(&str, &str); 7] = [
-            ("sessionid", session_id),
+            ("sessionid", ""),
             ("key", "SPXW_S U"),
             ("chaintype", "equity_options"),
             ("columns", "b,a,asz"),
@@ -152,62 +134,5 @@ impl ActiveTick {
         }
 
         return Ok(contracts_map);
-    }
-
-    // Function that returns a slice of the top arbs given the number of orders.
-    pub(crate) fn get_contender_contracts(
-        &self,
-        option: &str,
-        num_orders: i32,
-    ) -> Result<Vec<Contender>, Box<dyn Error>> {
-        let session_id: String = String::new();
-        let contracts_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>> =
-            self.get_spx_data(&session_id)?;
-        let mut contender_contracts_total: Vec<Contender> = Vec::new();
-
-        let dates_slice: &Vec<String> =
-            self.dates_slice.as_ref().ok_or("dates slice is not set")?;
-        let strike_slice: &HashMap<String, HashMap<String, Vec<f64>>> = self
-            .strike_slice
-            .as_ref()
-            .ok_or("strike slice is not set")?;
-
-        match OptionType::from_str(option).ok_or("Invalid option type")? {
-            OptionType::Butterfly => {
-                contender_contracts_total.extend(get_butterfly_contenders(
-                    &contracts_map,
-                    dates_slice,
-                    strike_slice,
-                )?);
-            }
-            OptionType::BoxSpread => {
-                contender_contracts_total.extend(get_boxspread_contenders(
-                    &contracts_map,
-                    dates_slice,
-                    strike_slice,
-                )?);
-            }
-            OptionType::All => {
-                contender_contracts_total.extend(get_butterfly_contenders(
-                    &contracts_map,
-                    dates_slice,
-                    strike_slice,
-                )?);
-                contender_contracts_total.extend(get_boxspread_contenders(
-                    &contracts_map,
-                    dates_slice,
-                    strike_slice,
-                )?);
-            }
-        }
-
-        contender_contracts_total.sort_by(|a, b| b.rank_value.partial_cmp(&a.rank_value).unwrap());
-
-        let num_orders_usize: usize = num_orders as usize; // Direct casting when sure about range.
-        if contender_contracts_total.len() > num_orders_usize {
-            contender_contracts_total.truncate(num_orders_usize);
-        }
-
-        Ok(contender_contracts_total)
     }
 }
