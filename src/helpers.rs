@@ -223,14 +223,16 @@ pub(crate) fn is_us_stock_market_open(current_time: chrono::DateTime<Utc>) -> bo
 
 // Function that calcs the number of orders and fills for every fill type.
 pub(crate) fn calc_final_num_orders(fill: &str, port_val: f64) -> (i32, i32) {
-    if port_val / 600.0 < 1.0 {
+    let num_times: i32 = (port_val / 600.0).floor() as i32;
+
+    if num_times < 1 {
         return (0, 0);
     }
 
     match fill {
         "1" => (1, 1),
-        "2" => (1, (port_val / 600.0).floor() as i32),
-        "3" => ((port_val / 600.0).floor() as i32, 1),
+        "2" => (1, if num_times > 9 { 9 } else { num_times }),
+        "3" => (num_times, 1),
         _ => get_optimal_num_orders(port_val),
     }
 }
