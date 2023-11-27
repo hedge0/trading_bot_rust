@@ -126,9 +126,7 @@ impl IBKR {
         option: &str,
         num_orders: i32,
     ) -> Result<Vec<Contender>, Box<dyn Error>> {
-        let contracts_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>> =
-            HashMap::new();
-        //    self.get_spx_data()?;
+        let contracts_map: HashMap<String, Opt> = self.get_spx_data()?;
         let mut contender_contracts_total: Vec<Contender> = Vec::new();
 
         let dates_slice: &Vec<String> =
@@ -277,24 +275,6 @@ impl IBKR {
 
         Ok(())
     }
-
-    /*
-     *
-     *
-     *
-     *
-     *
-     *
-     *
-     *
-     *
-     *
-     *
-     *
-     *
-     *
-     *
-     */
 
     // Function that sends a GET request for portfolio ID.
     fn get_account_id(&self) -> Result<String, Box<dyn Error>> {

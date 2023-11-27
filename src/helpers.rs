@@ -375,7 +375,7 @@ pub(crate) fn build_request_data(
 
 // Function that returns a slice of the top butterfly arbs.
 pub(crate) fn get_butterfly_contenders(
-    contracts_map: &HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>>,
+    contracts_map: &HashMap<String, Opt>,
     dates_slice: &Vec<String>,
     strike_slice: &HashMap<String, HashMap<String, Vec<f64>>>,
 ) -> Result<Vec<Contender>, Box<dyn Error>> {
@@ -471,7 +471,7 @@ pub(crate) fn get_butterfly_contenders(
 
 // Function that returns a slice of the top boxspread arbs.
 pub(crate) fn get_boxspread_contenders(
-    contracts_map: &HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>>,
+    contracts_map: &HashMap<String, Opt>,
     dates_slice: &Vec<String>,
     strike_slice: &HashMap<String, HashMap<String, Vec<f64>>>,
 ) -> Result<Vec<Contender>, Box<dyn Error>> {

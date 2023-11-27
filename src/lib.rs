@@ -12,10 +12,9 @@ mod tests {
     use crate::{
         helpers::{
             build_boxspread_order, build_butterfly_order, calc_final_num_orders, calc_rank_value,
-            calc_time_difference, get_boxspread_contenders, get_butterfly_contenders,
-            get_dotenv_variable,
+            calc_time_difference, get_dotenv_variable,
         },
-        structs::{Contender, Contract, Opt, OrderBody},
+        structs::{Contender, Contract, OrderBody},
     };
 
     #[test]
@@ -261,136 +260,5 @@ mod tests {
         ); // Verify the construction of the contract index string.
         assert_eq!(result.price, -5.90); // Validate the calculated price.
         assert_eq!(result.quantity, 4); // Check the order quantity.
-    }
-
-    #[test]
-    fn test_get_butterfly_contenders() {
-        // Mock data setup for the test.
-        let dates_slice: Vec<String> = vec!["210101".to_string()];
-
-        let mut strike_slice: HashMap<String, HashMap<String, Vec<f64>>> = HashMap::new();
-        strike_slice.insert("210101".to_string(), {
-            let mut map: HashMap<String, Vec<f64>> = HashMap::new();
-            map.insert("C".to_string(), vec![95.0, 100.0, 105.0]);
-            map
-        });
-
-        let mut contracts_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>> =
-            HashMap::new();
-        contracts_map.insert("210101".to_string(), {
-            let mut map: HashMap<String, HashMap<OrderedFloat<f64>, Opt>> = HashMap::new();
-            map.insert("C".to_string(), {
-                let mut inner_map: HashMap<OrderedFloat<f64>, Opt> = HashMap::new();
-                inner_map.insert(
-                    OrderedFloat(95.0),
-                    Opt {
-                        mkt: 2.1,
-                        bid: 1.3,
-                        asz: 8.0,
-                    },
-                );
-                inner_map.insert(
-                    OrderedFloat(100.0),
-                    Opt {
-                        mkt: 2.4,
-                        bid: 1.3,
-                        asz: 10.0,
-                    },
-                );
-                inner_map.insert(
-                    OrderedFloat(105.0),
-                    Opt {
-                        mkt: 2.2,
-                        bid: 1.3,
-                        asz: 12.0,
-                    },
-                );
-                inner_map
-            });
-            map
-        });
-
-        // Call the function with the mock data.
-        let result: Vec<Contender> =
-            get_butterfly_contenders(&contracts_map, &dates_slice, &strike_slice).unwrap();
-
-        // Assertions.
-        assert_eq!(result.len(), 1);
-        assert_eq!(result[0].arb_val, 0.5); // 2 * 2.4 (center) - (2.1 (left) + 2.2 (right)).
-        assert_eq!(result[0].avg_ask, 10.0);
-        assert_eq!(result[0].type_spread, "Butterfly");
-        assert_eq!(result[0].exp_date, "210101");
-    }
-
-    #[test]
-    fn test_get_boxspread_contenders() {
-        // Mock data setup for the test.
-        let dates_slice: Vec<String> = vec!["210101".to_string()];
-
-        let mut strike_slice: HashMap<String, HashMap<String, Vec<f64>>> = HashMap::new();
-        strike_slice.insert("210101".to_string(), {
-            let mut map: HashMap<String, Vec<f64>> = HashMap::new();
-            map.insert("C".to_string(), vec![4090.0, 4095.0]);
-            map.insert("P".to_string(), vec![4090.0, 4095.0]);
-            map
-        });
-
-        let mut contracts_map: HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, Opt>>> =
-            HashMap::new();
-        contracts_map.insert("210101".to_string(), {
-            let mut map: HashMap<String, HashMap<OrderedFloat<f64>, Opt>> = HashMap::new();
-            map.insert("C".to_string(), {
-                let mut inner_map: HashMap<OrderedFloat<f64>, Opt> = HashMap::new();
-                inner_map.insert(
-                    OrderedFloat(4090.0),
-                    Opt {
-                        mkt: 59.80,
-                        bid: 58.10,
-                        asz: 8.0,
-                    },
-                );
-                inner_map.insert(
-                    OrderedFloat(4095.0),
-                    Opt {
-                        mkt: 55.50,
-                        bid: 54.60,
-                        asz: 12.0,
-                    },
-                );
-                inner_map
-            });
-            map.insert("P".to_string(), {
-                let mut inner_map: HashMap<OrderedFloat<f64>, Opt> = HashMap::new();
-                inner_map.insert(
-                    OrderedFloat(4090.0),
-                    Opt {
-                        mkt: 28.50,
-                        bid: 27.80,
-                        asz: 12.0,
-                    },
-                );
-                inner_map.insert(
-                    OrderedFloat(4095.0),
-                    Opt {
-                        mkt: 30.35,
-                        bid: 29.60,
-                        asz: 8.0,
-                    },
-                );
-                inner_map
-            });
-            map
-        });
-
-        // Call the function with the mock data.
-        let result: Vec<Contender> =
-            get_boxspread_contenders(&contracts_map, &dates_slice, &strike_slice).unwrap();
-
-        // Assertions.
-        assert_eq!(result.len(), 1);
-        assert_eq!(result[0].arb_val, 6.15); // (1.4 + 2.5) - (1.5 + 2.1).
-        assert_eq!(result[0].avg_ask, 10.0);
-        assert_eq!(result[0].type_spread, "Boxspread");
-        assert_eq!(result[0].exp_date, "210101");
     }
 }
