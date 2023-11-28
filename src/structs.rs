@@ -41,9 +41,9 @@ pub(crate) struct MarketDataResponse {
     #[serde(rename = "84")]
     pub(crate) field_84: Option<String>,
     #[serde(rename = "85")]
-    pub(crate) field_85: String,
+    pub(crate) field_85: Option<String>,
     #[serde(rename = "86")]
-    pub(crate) field_86: String,
+    pub(crate) field_86: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
