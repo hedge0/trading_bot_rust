@@ -1,5 +1,7 @@
 mod helpers;
 mod ibkr;
+mod logging;
+mod spreads;
 mod structs;
 
 use std::{
@@ -12,9 +14,10 @@ use std::{
 use chrono::Utc;
 use helpers::{
     calc_final_num_orders, get_discount_value, get_dotenv_variable, get_fill_type, get_mode,
-    get_option, get_seconds_to_sleep, is_us_stock_market_open, log_error, log_message,
+    get_option, get_seconds_to_sleep, is_us_stock_market_open,
 };
 use ibkr::IBKR;
+use logging::{log_error, log_message};
 
 fn main() {
     let _ = File::create("log.txt");
