@@ -391,24 +391,33 @@ pub(crate) fn get_butterfly_contenders(
                     if contract_strikes.len() > 2 {
                         for i in 1..(contract_strikes.len() - 1) {
                             let current_strike: &f64 = &contract_strikes[i];
-                            let current_contract: &Opt = contracts_map
+                            let current_contract_conid: &String = conids_map
                                 .get(date)
                                 .and_then(|ct| ct.get(contract_type))
                                 .and_then(|ct| ct.get(current_strike.into()))
+                                .ok_or("Error accessing current conid")?;
+                            let current_contract: &Opt = contracts_map
+                                .get(current_contract_conid)
                                 .ok_or("Error accessing current contract")?;
 
                             let left_strike: &f64 = &contract_strikes[i - 1];
-                            let left_contract: &Opt = contracts_map
+                            let left_contract_conid: &String = conids_map
                                 .get(date)
                                 .and_then(|ct| ct.get(contract_type))
                                 .and_then(|ct| ct.get(left_strike.into()))
+                                .ok_or("Error accessing left conid")?;
+                            let left_contract: &Opt = contracts_map
+                                .get(left_contract_conid)
                                 .ok_or("Error accessing left contract")?;
 
                             let right_strike: &f64 = &contract_strikes[i + 1];
-                            let right_contract: &Opt = contracts_map
+                            let right_contract_conid: &String = conids_map
                                 .get(date)
                                 .and_then(|ct| ct.get(contract_type))
                                 .and_then(|ct| ct.get(right_strike.into()))
+                                .ok_or("Error accessing right conid")?;
+                            let right_contract: &Opt = contracts_map
+                                .get(right_contract_conid)
                                 .ok_or("Error accessing right contract")?;
 
                             let arb_val: f64 = (2.0 * current_contract.mkt)
@@ -487,31 +496,43 @@ pub(crate) fn get_boxspread_contenders(
                 if cs.len() > 1 && ps.len() > 1 {
                     for i in 0..(cs.len() - 1) {
                         let current_strike_c: &f64 = &cs[i];
-                        let current_c: &Opt = contracts_map
+                        let current_c_conid: &String = conids_map
                             .get(date)
                             .and_then(|c| c.get("C"))
                             .and_then(|c| c.get(current_strike_c.into()))
+                            .ok_or("Error accessing current call conid")?;
+                        let current_c: &Opt = contracts_map
+                            .get(current_c_conid)
                             .ok_or("Error accessing current call contract")?;
 
                         let current_strike_p: &f64 = &ps[i];
-                        let current_p: &Opt = contracts_map
+                        let current_p_conid: &String = conids_map
                             .get(date)
                             .and_then(|p| p.get("P"))
                             .and_then(|p| p.get(current_strike_p.into()))
+                            .ok_or("Error accessing current put conid")?;
+                        let current_p: &Opt = contracts_map
+                            .get(current_p_conid)
                             .ok_or("Error accessing current put contract")?;
 
                         let right_strike_c: &f64 = &cs[i + 1];
-                        let right_c: &Opt = contracts_map
+                        let right_c_conid: &String = conids_map
                             .get(date)
                             .and_then(|c| c.get("C"))
                             .and_then(|c| c.get(right_strike_c.into()))
+                            .ok_or("Error accessing right call conid")?;
+                        let right_c: &Opt = contracts_map
+                            .get(right_c_conid)
                             .ok_or("Error accessing right call contract")?;
 
                         let right_strike_p: &f64 = &ps[i + 1];
-                        let right_p: &Opt = contracts_map
+                        let right_p_conid: &String = conids_map
                             .get(date)
                             .and_then(|p| p.get("P"))
                             .and_then(|p| p.get(right_strike_p.into()))
+                            .ok_or("Error accessing right put conid")?;
+                        let right_p: &Opt = contracts_map
+                            .get(right_p_conid)
                             .ok_or("Error accessing right put contract")?;
 
                         let arb_val: f64 =
