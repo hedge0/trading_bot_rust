@@ -33,7 +33,7 @@ pub(crate) fn build_butterfly_order(
         order_type: "LMT".to_string(),
         listing_exchange: "SMART".to_string(),
         outside_rth: false,
-        price: -1.0 * ((contract.arb_val * discount_value.unwrap() * 100.0).round() / 100.0),
+        price: -1.0 * (((contract.arb_val - discount_value.unwrap()) * 100.0).round() / 100.0),
         side: "BUY".to_string(),
         ticker: "SPX".to_string(),
         tif: "DAY".to_string(),
@@ -71,9 +71,7 @@ pub(crate) fn build_boxspread_order(
         order_type: "LMT".to_string(),
         listing_exchange: "SMART".to_string(),
         outside_rth: false,
-        price: -1.0
-            * (((((contract.arb_val - 5.0) * discount_value.unwrap()) + 5.0) * 100.0).round()
-                / 100.0),
+        price: -1.0 * (((contract.arb_val - discount_value.unwrap()) * 100.0).round() / 100.0),
         side: "BUY".to_string(),
         ticker: "SPX".to_string(),
         tif: "DAY".to_string(),
