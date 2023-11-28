@@ -188,6 +188,7 @@ impl IBKR {
         );
 
         let mut contracts_map: HashMap<String, Opt> = HashMap::new();
+        let mut response_arr: Vec<Response> = Vec::new();
         let conids_arr: &Vec<String> = self.conids_strings.as_ref().unwrap();
 
         for conid in conids_arr {
@@ -212,6 +213,10 @@ impl IBKR {
                 exit(1);
             }
 
+            response_arr.push(response);
+        }
+
+        for response in response_arr {
             let generic_responses: Vec<MarketDataResponse> = response.json()?;
 
             for response in &generic_responses {
