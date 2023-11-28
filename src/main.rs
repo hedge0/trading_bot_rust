@@ -1,7 +1,7 @@
 mod helpers;
 mod ibkr;
 mod logging;
-mod spreads;
+mod orders;
 mod structs;
 
 use std::{
