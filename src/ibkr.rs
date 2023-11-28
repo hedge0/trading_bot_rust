@@ -221,8 +221,6 @@ impl IBKR {
                         if let Some(field_86_value) = &response.field_86 {
                             if field_84_value != "" && field_85_value != "" && field_86_value != ""
                             {
-                                println!("{}", field_84_value);
-
                                 let conid: &String = &response.conid_ex;
                                 let bid_val: f64 = field_84_value
                                     .replace(",", "")
