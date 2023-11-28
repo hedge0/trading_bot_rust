@@ -168,7 +168,7 @@ pub(crate) fn get_butterfly_contenders(
                             let arb_val: f64 = (2.0 * current_contract.mkt)
                                 - (left_contract.mkt + right_contract.mkt);
 
-                            if arb_val > 0.3
+                            if arb_val > 0.4
                                 && left_contract.bid > 1.0
                                 && right_contract.bid > 1.0
                                 && current_contract.bid > 1.0
@@ -283,7 +283,7 @@ pub(crate) fn get_boxspread_contenders(
                         let arb_val: f64 =
                             (current_p.mkt + right_c.mkt) - (current_c.mkt + right_p.mkt);
 
-                        if arb_val < -5.3
+                        if arb_val < -5.4
                             && current_c.bid > 1.0
                             && current_p.bid > 1.0
                             && right_c.bid > 1.0
