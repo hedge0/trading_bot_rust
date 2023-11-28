@@ -13,10 +13,9 @@ use std::{
 };
 
 use crate::{
-    helpers::{
-        build_request_data, calc_time_difference, get_boxspread_contenders,
-        get_butterfly_contenders, log_error, log_message,
-    },
+    helpers::calc_time_difference,
+    logging::{log_error, log_message},
+    spreads::{build_request_data, get_boxspread_contenders, get_butterfly_contenders},
     structs::{
         AccountResponse, Confirmation, Contender, MarketDataResponse, Opt, PortfolioResponse,
         RequestDataStruct, SecDefInfoResponse, SecDefResponse,
