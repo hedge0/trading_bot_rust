@@ -219,28 +219,46 @@ impl IBKR {
                 if let Some(field_84_value) = &response.field_84 {
                     if let Some(field_85_value) = &response.field_85 {
                         if let Some(field_86_value) = &response.field_86 {
-                            let conid: &String = &response.conid_ex;
-                            let bid_val: f64 = field_84_value
-                                .parse::<f64>()
-                                .map_err(|_| "Failed to parse bid")?;
-                            let ask_val: f64 = field_86_value
-                                .parse::<f64>()
-                                .map_err(|_| "Failed to parse ask")?;
-                            let asz_val: f64 = field_85_value
-                                .replace(",", "")
-                                .parse::<f64>()
-                                .map_err(|_| "Failed to parse asz")?;
+                            if field_84_value != "" && field_85_value != "" && field_86_value != ""
+                            {
+                                println!("{}", field_84_value);
 
-                            let mkt_val: f64 = ((bid_val + ask_val) / 2.0 * 100.0).round() / 100.0;
+                                let conid: &String = &response.conid_ex;
+                                let bid_val: f64 = field_84_value
+                                    .replace(",", "")
+                                    .parse::<f64>()
+                                    .map_err(|_| "Failed to parse bid")?;
+                                let ask_val: f64 = field_86_value
+                                    .replace(",", "")
+                                    .parse::<f64>()
+                                    .map_err(|_| "Failed to parse ask")?;
+                                let asz_val: f64 = field_85_value
+                                    .replace(",", "")
+                                    .parse::<f64>()
+                                    .map_err(|_| "Failed to parse asz")?;
 
-                            contracts_map.insert(
-                                conid.to_string(),
-                                Opt {
-                                    asz: asz_val,
-                                    mkt: mkt_val,
-                                    bid: bid_val,
-                                },
-                            );
+                                let mkt_val: f64 =
+                                    ((bid_val + ask_val) / 2.0 * 100.0).round() / 100.0;
+
+                                contracts_map.insert(
+                                    conid.to_string(),
+                                    Opt {
+                                        asz: asz_val,
+                                        mkt: mkt_val,
+                                        bid: bid_val,
+                                    },
+                                );
+                            } else {
+                                let conid: &String = &response.conid_ex;
+                                contracts_map.insert(
+                                    conid.to_string(),
+                                    Opt {
+                                        asz: 0.0,
+                                        mkt: 0.0,
+                                        bid: 0.0,
+                                    },
+                                );
+                            }
                         } else {
                             let conid: &String = &response.conid_ex;
                             contracts_map.insert(
