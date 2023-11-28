@@ -187,9 +187,9 @@ impl IBKR {
             self.base_url.as_ref().unwrap()
         );
 
+        let conids_arr: &Vec<String> = self.conids_strings.as_ref().unwrap();
         let mut contracts_map: HashMap<String, Opt> = HashMap::new();
         let mut response_arr: Vec<Response> = Vec::new();
-        let conids_arr: &Vec<String> = self.conids_strings.as_ref().unwrap();
 
         for conid in conids_arr {
             let params: [(&str, &str); 2] = [("conids", conid), ("fields", "84,85,86")];
