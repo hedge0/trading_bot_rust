@@ -227,6 +227,7 @@ impl IBKR {
                                 .parse::<f64>()
                                 .map_err(|_| "Failed to parse ask")?;
                             let asz_val: f64 = field_85_value
+                                .replace(",", "")
                                 .parse::<f64>()
                                 .map_err(|_| "Failed to parse asz")?;
 
@@ -241,6 +242,7 @@ impl IBKR {
                                 },
                             );
                         } else {
+                            let conid: &String = &response.conid_ex;
                             contracts_map.insert(
                                 conid.to_string(),
                                 Opt {
@@ -251,6 +253,7 @@ impl IBKR {
                             );
                         }
                     } else {
+                        let conid: &String = &response.conid_ex;
                         contracts_map.insert(
                             conid.to_string(),
                             Opt {
@@ -261,6 +264,7 @@ impl IBKR {
                         );
                     }
                 } else {
+                    let conid: &String = &response.conid_ex;
                     contracts_map.insert(
                         conid.to_string(),
                         Opt {
