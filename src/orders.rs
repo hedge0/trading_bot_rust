@@ -97,8 +97,22 @@ pub(crate) fn build_request_data(
                     conids_map,
                     discount_value,
                 ));
+                request_data.orders.push(build_butterfly_order(
+                    contract,
+                    num_fills,
+                    account_id,
+                    conids_map,
+                    discount_value,
+                ));
             }
             "Boxspread" => {
+                request_data.orders.push(build_boxspread_order(
+                    contract,
+                    num_fills,
+                    account_id,
+                    conids_map,
+                    discount_value,
+                ));
                 request_data.orders.push(build_boxspread_order(
                     contract,
                     num_fills,
