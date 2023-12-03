@@ -14,7 +14,7 @@ use std::{
 use chrono::Utc;
 use helpers::{
     calc_final_num_orders, get_discount_value, get_dotenv_variable, get_fill_type, get_mode,
-    get_option, get_seconds_to_sleep, is_us_stock_market_open,
+    get_num_days, get_option, get_seconds_to_sleep, is_us_stock_market_open,
 };
 use ibkr::IBKR;
 use logging::{log_error, log_message};
@@ -41,7 +41,7 @@ fn main() {
             Ok(val) => val,
             Err(_) => "5000".to_string(),
         },
-        6,
+        get_num_days(),
     ) {
         Ok(_) => log_message(format!("Bot is live.")),
         Err(e) => log_error(format!("{}", e)),
