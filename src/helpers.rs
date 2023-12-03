@@ -145,6 +145,43 @@ pub(crate) fn get_discount_value() -> f64 {
     }
 }
 
+// Function that gets number of days.
+pub(crate) fn get_num_days() -> i64 {
+    match get_dotenv_variable("NUM_DAYS") {
+        Ok(val) => match val.parse::<i64>() {
+            Ok(parsed_val) => {
+                if parsed_val > 0 && parsed_val < 10 {
+                    parsed_val
+                } else {
+                    println!("Not a valid number in the range 1-9, setting to 5");
+                    5
+                }
+            }
+            Err(_) => {
+                println!("Not a valid integer, setting to 5");
+                5
+            }
+        },
+        Err(_) => {
+            let input: String = get_user_input("Enter number of days worth of data to receive:");
+            match input.parse::<i64>() {
+                Ok(parsed_input) => {
+                    if parsed_input > 0 && parsed_input < 10 {
+                        parsed_input
+                    } else {
+                        println!("Not a valid number in the range 1-9, setting to 5");
+                        5
+                    }
+                }
+                Err(_) => {
+                    println!("Not a valid integer, setting to 5");
+                    5
+                }
+            }
+        }
+    }
+}
+
 // Function that checks if the stock market is currently open.
 pub(crate) fn is_us_stock_market_open(current_time: chrono::DateTime<Utc>) -> bool {
     // Convert the current UTC time to New York time
