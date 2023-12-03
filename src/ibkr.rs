@@ -10,6 +10,8 @@ use std::{
     error::Error,
     io::{self, ErrorKind},
     process::exit,
+    sync::{Arc, Mutex},
+    thread,
 };
 
 use crate::{
@@ -182,41 +184,68 @@ impl IBKR {
 
     // Function that sends a GET request for SPX data, and then parses the response.
     fn get_spx_data(&self) -> Result<HashMap<String, Opt>, Box<dyn Error>> {
+        let mut contracts_map: HashMap<String, Opt> = HashMap::new();
         let chain_url: String = format!(
             "{}/v1/api/iserver/marketdata/snapshot",
             self.base_url.as_ref().unwrap()
         );
-
         let conids_arr: &Vec<String> = self.conids_strings.as_ref().unwrap();
-        let mut contracts_map: HashMap<String, Opt> = HashMap::new();
-        let mut response_arr: Vec<Response> = Vec::new();
 
-        for conid in conids_arr {
-            let params: [(&str, &str); 2] = [("conids", conid), ("fields", "84,85,86")];
-
-            let response: Response = self
-                .client
+        let client: Arc<Client> = Arc::new(
+            self.client
                 .as_ref()
                 .ok_or("Client is not initialized")?
-                .get(chain_url.clone())
-                .header("Connection", "keep-alive")
-                .header("User-Agent", "trading_bot_rust/1.0")
-                .query(&params)
-                .send()?;
+                .clone(),
+        );
+        let chain_url: Arc<String> = Arc::new(chain_url);
+        let response_arr: Arc<Mutex<Vec<Response>>> = Arc::new(Mutex::new(Vec::new()));
 
-            if !response.status().is_success() {
-                log_error(format!(
-                    "{}\nBody: {:?}",
-                    response.status(),
-                    response.text()?
-                ));
-                exit(1);
-            }
+        let mut handles: Vec<thread::JoinHandle<()>> = Vec::new();
 
-            response_arr.push(response);
+        for conid in conids_arr {
+            let client: Arc<Client> = Arc::clone(&client);
+            let chain_url: Arc<String> = Arc::clone(&chain_url);
+            let response_arr: Arc<Mutex<Vec<Response>>> = Arc::clone(&response_arr);
+            let conid: String = conid.clone();
+
+            let handle: thread::JoinHandle<()> = thread::spawn(move || {
+                let params: [(&str, &str); 2] = [("conids", &conid), ("fields", "84,85,86")];
+
+                match client
+                    .get(chain_url.as_ref())
+                    .header("Connection", "keep-alive")
+                    .header("User-Agent", "trading_bot_rust/1.0")
+                    .query(&params)
+                    .send()
+                {
+                    Ok(response) => {
+                        if response.status().is_success() {
+                            let mut response_arr: std::sync::MutexGuard<'_, Vec<Response>> =
+                                response_arr.lock().unwrap();
+                            response_arr.push(response);
+                        } else {
+                            log_error(format!(
+                                "{}\nBody: {:?}",
+                                response.status(),
+                                response.text().unwrap_or_else(|_| "".to_string())
+                            ));
+                        }
+                    }
+                    Err(e) => log_error(format!("Failed to get SPX data: {}", e)),
+                }
+            });
+
+            handles.push(handle);
         }
 
-        for response in response_arr {
+        for handle in handles {
+            handle.join().unwrap();
+        }
+
+        let mut response_vec: std::sync::MutexGuard<'_, Vec<Response>> =
+            response_arr.lock().unwrap();
+
+        for response in response_vec.drain(..) {
             let generic_responses: Vec<MarketDataResponse> = response.json()?;
 
             for response in &generic_responses {
