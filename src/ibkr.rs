@@ -417,9 +417,9 @@ impl IBKR {
                                     - (left_contract.mkt + right_contract.mkt);
 
                                 if arb_val > 0.4
-                                    && left_contract.bid > 1.5
-                                    && right_contract.bid > 1.5
-                                    && current_contract.bid > 1.5
+                                    && left_contract.bid > 2.0
+                                    && right_contract.bid > 2.0
+                                    && current_contract.bid > 2.0
                                     && left_contract.asz > 0.0
                                     && right_contract.asz > 0.0
                                     && current_contract.asz > 0.0
@@ -534,10 +534,10 @@ impl IBKR {
                                 (current_p.mkt + right_c.mkt) - (current_c.mkt + right_p.mkt);
 
                             if arb_val < -5.4
-                                && current_c.bid > 1.5
-                                && current_p.bid > 1.5
-                                && right_c.bid > 1.5
-                                && right_p.bid > 1.5
+                                && current_c.bid > 2.0
+                                && current_p.bid > 2.0
+                                && right_c.bid > 2.0
+                                && right_p.bid > 2.0
                                 && current_c.asz > 0.0
                                 && current_p.asz > 0.0
                                 && right_c.asz > 0.0
