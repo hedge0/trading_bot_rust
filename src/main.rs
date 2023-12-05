@@ -49,18 +49,14 @@ fn main() {
 
     loop {
         if !mode || is_us_stock_market_open(Utc::now()) {
-            if mode {
-                match ibkr.get_portfolio_value() {
-                    Ok(portfolio_val) => {
-                        port_val = portfolio_val;
-                    }
-                    Err(e) => {
-                        log_error(format!("{}", e));
-                        exit(1);
-                    }
+            match ibkr.get_portfolio_value() {
+                Ok(portfolio_val) => {
+                    port_val = portfolio_val;
                 }
-            } else {
-                port_val = 100000.0;
+                Err(e) => {
+                    log_error(format!("{}", e));
+                    exit(1);
+                }
             }
 
             (num_orders, num_fills) = calc_final_num_orders(&fill, port_val);
