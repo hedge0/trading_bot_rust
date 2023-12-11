@@ -75,7 +75,7 @@ pub(crate) fn get_seconds_to_sleep() -> u64 {
         Ok(val) => {
             match val.parse::<u64>() {
                 Ok(parsed_val) => {
-                    if parsed_val > 5 {
+                    if parsed_val >= 5 {
                         parsed_val
                     } else {
                         println!("Not a valid positive integer greater than or equal to 5, setting to 60");
@@ -92,7 +92,7 @@ pub(crate) fn get_seconds_to_sleep() -> u64 {
             let input: String = get_user_input("Enter number of seconds to sleep:");
             match input.parse::<u64>() {
                 Ok(parsed_input) => {
-                    if parsed_input > 5 {
+                    if parsed_input >= 5 {
                         parsed_input
                     } else {
                         println!("Not a valid positive integer greater than or equal to 5, setting to 60");
