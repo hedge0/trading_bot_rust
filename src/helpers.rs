@@ -196,7 +196,7 @@ pub(crate) fn is_us_stock_market_open(current_time: chrono::DateTime<Utc>) -> bo
     let market_open_result: chrono::LocalResult<DateTime<chrono_tz::Tz>> =
         New_York.with_ymd_and_hms(ny_time.year(), ny_time.month(), ny_time.day(), 9, 30, 0);
     let market_close_result: chrono::LocalResult<DateTime<chrono_tz::Tz>> =
-        New_York.with_ymd_and_hms(ny_time.year(), ny_time.month(), ny_time.day(), 15, 0, 0);
+        New_York.with_ymd_and_hms(ny_time.year(), ny_time.month(), ny_time.day(), 15, 30, 0);
 
     let market_open: DateTime<chrono_tz::Tz> = match market_open_result.single() {
         Some(time) => time,
