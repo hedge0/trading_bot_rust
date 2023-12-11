@@ -416,7 +416,7 @@ impl IBKR {
                                 let arb_val: f64 = (2.0 * current_contract.mkt)
                                     - (left_contract.mkt + right_contract.mkt);
 
-                                if arb_val > 0.74
+                                if arb_val > 0.99
                                     && left_contract.bid > 2.0
                                     && right_contract.bid > 2.0
                                     && current_contract.bid > 2.0
@@ -533,7 +533,7 @@ impl IBKR {
                             let arb_val: f64 =
                                 (current_p.mkt + right_c.mkt) - (current_c.mkt + right_p.mkt);
 
-                            if arb_val < -5.74
+                            if arb_val < -5.99
                                 && current_c.bid > 2.0
                                 && current_p.bid > 2.0
                                 && right_c.bid > 2.0
