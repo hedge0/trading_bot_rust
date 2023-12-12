@@ -183,6 +183,43 @@ pub(crate) fn get_num_days() -> i64 {
     }
 }
 
+// Function that gets number of days to offset from the current day.
+pub(crate) fn get_num_days_offset() -> i64 {
+    match get_dotenv_variable("NUM_DAYS_OFFSET") {
+        Ok(val) => match val.parse::<i64>() {
+            Ok(parsed_val) => {
+                if parsed_val >= 0 && parsed_val <= 21 {
+                    parsed_val
+                } else {
+                    println!("Not a valid number in the range 0-21, setting to 0");
+                    0
+                }
+            }
+            Err(_) => {
+                println!("Not a valid integer, setting to 0");
+                0
+            }
+        },
+        Err(_) => {
+            let input: String = get_user_input("Enter number of days offset:");
+            match input.parse::<i64>() {
+                Ok(parsed_input) => {
+                    if parsed_input >= 0 && parsed_input <= 21 {
+                        parsed_input
+                    } else {
+                        println!("Not a valid number in the range 0-21, setting to 0");
+                        0
+                    }
+                }
+                Err(_) => {
+                    println!("Not a valid integer, setting to 0");
+                    0
+                }
+            }
+        }
+    }
+}
+
 // Function that checks if the stock market is currently open.
 pub(crate) fn is_us_stock_market_open(current_time: chrono::DateTime<Utc>) -> bool {
     // Convert the current UTC time to New York time
@@ -215,7 +252,7 @@ pub(crate) fn is_us_stock_market_open(current_time: chrono::DateTime<Utc>) -> bo
 
 // Function that calcs the number of orders and fills for every fill type.
 pub(crate) fn calc_final_num_orders(fill: &str, port_val: f64) -> (i32, i32) {
-    let num_times: i32 = (port_val / 1000.0).floor() as i32;
+    let num_times: i32 = (port_val / 600.0).floor() as i32;
 
     if num_times < 1 {
         return (0, 0);
@@ -231,9 +268,9 @@ pub(crate) fn calc_final_num_orders(fill: &str, port_val: f64) -> (i32, i32) {
 
 // Function that gets the ideal number of orders and fills.
 fn get_optimal_num_orders(portfolio_value: f64) -> (i32, i32) {
-    let num: i32 = (portfolio_value / 1000.0).sqrt() as i32;
+    let num: i32 = (portfolio_value / 600.0).sqrt() as i32;
     if num > 9 {
-        ((portfolio_value / 1000.0 / 9.0).floor() as i32, 9)
+        ((portfolio_value / 600.0 / 9.0).floor() as i32, 9)
     } else {
         (num, num)
     }

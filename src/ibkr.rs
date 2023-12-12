@@ -77,6 +77,7 @@ impl IBKR {
         domain: String,
         port: String,
         num_days: i64,
+        num_days_offset: i64,
     ) -> Result<(), Box<dyn Error>> {
         let mut current_month: String = String::new();
         let mut next_month: String = String::new();
@@ -105,7 +106,7 @@ impl IBKR {
             Err(e) => log_error(format!("Failed to get SPX ID: {}", e)),
         }
 
-        match self.get_conids_map(num_days, current_month, next_month) {
+        match self.get_conids_map(num_days, num_days_offset, current_month, next_month) {
             Ok((conids_strings, dates_slice, strike_slice, conids_map)) => {
                 self.conids_strings = Some(conids_strings);
                 self.dates_slice = Some(dates_slice);
@@ -380,20 +381,6 @@ impl IBKR {
         Ok(())
     }
 
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-
     // Function that returns a slice of the top calendar arbs.
     pub(crate) fn get_calendar_contenders(
         &self,
@@ -435,7 +422,7 @@ impl IBKR {
 
                             let arb_val: f64 = current_opt.mkt - next_opt.mkt;
 
-                            if arb_val > 0.99
+                            if arb_val > 1.99
                                 && current_opt.bid > 1.0
                                 && next_opt.bid > 1.0
                                 && current_opt.asz > 0.0
@@ -807,6 +794,7 @@ impl IBKR {
     fn get_conids_map(
         &self,
         mut num_days: i64,
+        num_days_offset: i64,
         current_month: String,
         next_month: String,
     ) -> Result<
@@ -864,7 +852,7 @@ impl IBKR {
             let strike: OrderedFloat<f64> = OrderedFloat(sec_def_info.strike);
             let conid: f64 = sec_def_info.conid;
 
-            if calc_time_difference(&current_date, &exp_date) > -1 {
+            if calc_time_difference(&current_date, &exp_date) > (-1 + num_days_offset) {
                 if !strike_slice.contains_key(&exp_date) {
                     num_days -= 1;
                     if num_days < 0 {

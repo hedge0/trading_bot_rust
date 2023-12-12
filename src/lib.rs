@@ -32,19 +32,19 @@ mod tests {
     #[test]
     fn test_calc_final_num_orders() {
         // Test for port_val less than 600.
-        assert_eq!(calc_final_num_orders("1", 999.0), (0, 0));
+        assert_eq!(calc_final_num_orders("1", 599.0), (0, 0));
 
         // Test for fill type "1".
-        assert_eq!(calc_final_num_orders("1", 1000.0), (1, 1));
-        assert_eq!(calc_final_num_orders("1", 2000.0), (1, 1));
+        assert_eq!(calc_final_num_orders("1", 600.0), (1, 1));
+        assert_eq!(calc_final_num_orders("1", 1200.0), (1, 1));
 
         // Test for fill type "2".
-        assert_eq!(calc_final_num_orders("2", 1000.0), (1, 1));
-        assert_eq!(calc_final_num_orders("2", 2000.0), (1, 2));
+        assert_eq!(calc_final_num_orders("2", 600.0), (1, 1));
+        assert_eq!(calc_final_num_orders("2", 1200.0), (1, 2));
 
         // Test for fill type "3".
-        assert_eq!(calc_final_num_orders("3", 1000.0), (1, 1));
-        assert_eq!(calc_final_num_orders("3", 2000.0), (2, 1));
+        assert_eq!(calc_final_num_orders("3", 600.0), (1, 1));
+        assert_eq!(calc_final_num_orders("3", 1200.0), (2, 1));
     }
 
     #[test]
