@@ -181,6 +181,15 @@ pub(crate) fn build_request_data(
 
     for contract in contender_contracts {
         match contract.type_spread.as_str() {
+            "Calendar" => {
+                request_data.orders.push(build_calendar_order(
+                    contract,
+                    num_fills,
+                    account_id,
+                    conids_map,
+                    discount_value,
+                ));
+            }
             "Butterfly" => {
                 request_data.orders.push(build_butterfly_bull_order(
                     contract,
