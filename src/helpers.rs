@@ -26,9 +26,10 @@ pub(crate) fn get_option() -> String {
         Ok(val) => val,
         Err(_) => {
             let prompt: &str = "\
-1 for Butterfly
-2 for Boxspread
-DEFAULT for Butterfly + Boxspread
+1 for Calendar
+2 for Butterfly
+3 for Boxspread
+DEFAULT for Calendar + Butterfly + Boxspread
 ";
             get_user_input(&format!(
                 "{}\nEnter which strategy the bot should use:",
@@ -250,4 +251,10 @@ pub(crate) fn calc_time_difference(current_date: &str, date: &str) -> i64 {
 pub(crate) fn calc_rank_value(avg_ask: f64, arb_val: f64, current_date: &str, date: &str) -> f64 {
     let difference: i64 = calc_time_difference(current_date, date) + 1;
     (avg_ask * arb_val) / (difference as f64)
+}
+
+// Function that predicts max callie loss.
+pub(crate) fn calendar_spread_risk_free_profit(strike: &f64, arb_val: f64) -> f64 {
+    let max_loss: f64 = (strike / 200.0) * 0.03;
+    arb_val - max_loss
 }
