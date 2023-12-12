@@ -15,7 +15,7 @@ use std::{
 };
 
 use crate::{
-    helpers::{calc_rank_value, calc_time_difference},
+    helpers::{calc_rank_value, calc_time_difference, calendar_spread_risk_free_profit},
     logging::{log_error, log_message},
     orders::build_request_data,
     structs::{
@@ -25,6 +25,7 @@ use crate::{
 };
 
 enum OptionType {
+    Calendar,
     Butterfly,
     BoxSpread,
     All,
@@ -33,8 +34,9 @@ enum OptionType {
 impl OptionType {
     fn from_str(s: &str) -> Option<Self> {
         match s {
-            "1" => Some(OptionType::Butterfly),
-            "2" => Some(OptionType::BoxSpread),
+            "1" => Some(OptionType::Calendar),
+            "2" => Some(OptionType::Butterfly),
+            "3" => Some(OptionType::BoxSpread),
             _ => Some(OptionType::All),
         }
     }
@@ -140,6 +142,14 @@ impl IBKR {
             self.conids_map.as_ref().ok_or("conids map is not set")?;
 
         match OptionType::from_str(option).ok_or("Invalid option type")? {
+            OptionType::Calendar => {
+                contender_contracts_total.extend(self.get_calendar_contenders(
+                    &contracts_map,
+                    dates_slice,
+                    strike_slice,
+                    conids_map,
+                )?);
+            }
             OptionType::Butterfly => {
                 contender_contracts_total.extend(self.get_butterfly_contenders(
                     &contracts_map,
@@ -157,6 +167,12 @@ impl IBKR {
                 )?);
             }
             OptionType::All => {
+                contender_contracts_total.extend(self.get_calendar_contenders(
+                    &contracts_map,
+                    dates_slice,
+                    strike_slice,
+                    conids_map,
+                )?);
                 contender_contracts_total.extend(self.get_butterfly_contenders(
                     &contracts_map,
                     dates_slice,
@@ -362,6 +378,104 @@ impl IBKR {
         }
 
         Ok(())
+    }
+
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+
+    // Function that returns a slice of the top calendar arbs.
+    pub(crate) fn get_calendar_contenders(
+        &self,
+        contracts_map: &HashMap<String, Opt>,
+        dates_slice: &Vec<String>,
+        strike_slice: &HashMap<String, HashMap<String, Vec<f64>>>,
+        conids_map: &HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>,
+    ) -> Result<Vec<Contender>, Box<dyn Error>> {
+        let mut contender_contracts: Vec<Contender> = Vec::new();
+        let now: chrono::DateTime<Local> = Local::now();
+        let current_date: String =
+            format!("{:02}{:02}{:02}", now.year() % 100, now.month(), now.day());
+
+        for date_index in 0..(dates_slice.len() - 1) {
+            let date: &String = &dates_slice[date_index];
+
+            if let Some(strike_data) = strike_slice.get(date) {
+                for (contract_type, strikes) in strike_data.iter() {
+                    for current_strike in strikes {
+                        let current_contract_conid: &String = conids_map
+                            .get(date)
+                            .and_then(|ct| ct.get(contract_type))
+                            .and_then(|ct| ct.get(current_strike.into()))
+                            .ok_or("Error accessing current conid")?;
+                        let current_opt: &Opt = contracts_map
+                            .get(current_contract_conid)
+                            .ok_or("Error accessing current contract")?;
+
+                        let next_date: &String = &dates_slice[date_index + 1];
+                        let next_contract_conid: Option<&String> = conids_map
+                            .get(next_date)
+                            .and_then(|ct| ct.get(contract_type))
+                            .and_then(|ct| ct.get(current_strike.into()));
+
+                        if let Some(next_contract_conid) = next_contract_conid {
+                            let next_opt: &Opt = contracts_map
+                                .get(next_contract_conid)
+                                .ok_or("Error accessing next contract")?;
+
+                            let arb_val: f64 = current_opt.mkt - next_opt.mkt;
+
+                            if arb_val > 0.99
+                                && current_opt.bid > 1.0
+                                && next_opt.bid > 1.0
+                                && current_opt.asz > 0.0
+                                && next_opt.asz > 0.0
+                                && calc_time_difference(date, next_date) == 1
+                                && calendar_spread_risk_free_profit(current_strike, arb_val) > 0.25
+                            {
+                                let avg_ask: f64 = ((current_opt.asz + next_opt.asz) / 2.0).round();
+                                let rank_value: f64 =
+                                    calc_rank_value(avg_ask, arb_val, &current_date, date);
+
+                                contender_contracts.push(Contender {
+                                    arb_val: (arb_val * 100.0).round() / 100.0,
+                                    avg_ask,
+                                    type_spread: "Calendar".to_string(),
+                                    exp_date: date.clone(),
+                                    rank_value,
+                                    contracts: vec![
+                                        Contract {
+                                            strike: *current_strike,
+                                            mkt_price: current_opt.mkt,
+                                            date: date.clone(),
+                                            type_contract: contract_type.clone(),
+                                        },
+                                        Contract {
+                                            strike: *current_strike,
+                                            mkt_price: next_opt.mkt,
+                                            date: next_date.clone(),
+                                            type_contract: contract_type.clone(),
+                                        },
+                                    ],
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(contender_contracts)
     }
 
     // Function that returns a slice of the top butterfly arbs.
