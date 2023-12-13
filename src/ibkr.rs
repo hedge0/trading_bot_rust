@@ -430,14 +430,14 @@ impl IBKR {
 
                             let arb_val: f64 = current_opt.mkt - next_opt.mkt;
 
-                            if arb_val > 2.74
+                            if arb_val > 3.29
                                 && current_opt.bid > 1.0
                                 && next_opt.bid > 1.0
                                 && current_opt.asz > 0.0
                                 && next_opt.asz > 0.0
                                 && calc_time_difference(date, next_date) == 1
                                 && calendar_spread_risk_free_profit(current_strike, arb_val) > 0.25
-                                && (current_strike - mean_val).abs() <= 500.0
+                                && (current_strike - mean_val).abs() <= 700.0
                             {
                                 let avg_ask: f64 = ((current_opt.asz + next_opt.asz) / 2.0).round();
                                 let rank_value: f64 =
