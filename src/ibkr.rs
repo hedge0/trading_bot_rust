@@ -422,7 +422,7 @@ impl IBKR {
 
                             let arb_val: f64 = current_opt.mkt - next_opt.mkt;
 
-                            if arb_val > 2.49
+                            if arb_val > 3.49
                                 && current_opt.bid > 1.0
                                 && next_opt.bid > 1.0
                                 && current_opt.asz > 0.0
