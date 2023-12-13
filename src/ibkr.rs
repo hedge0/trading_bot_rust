@@ -394,6 +394,14 @@ impl IBKR {
         let current_date: String =
             format!("{:02}{:02}{:02}", now.year() % 100, now.month(), now.day());
 
+        let date_for_mean: &String = &dates_slice[0];
+        let mut mean_val: f64 = 0.0;
+        if let Some(strike_data) = strike_slice.get(date_for_mean) {
+            let sum: f64 = strike_data["C"].iter().sum();
+            let count: f64 = strike_data["C"].len() as f64;
+            mean_val = sum / count;
+        }
+
         for date_index in 0..(dates_slice.len() - 1) {
             let date: &String = &dates_slice[date_index];
 
@@ -422,13 +430,14 @@ impl IBKR {
 
                             let arb_val: f64 = current_opt.mkt - next_opt.mkt;
 
-                            if arb_val > 3.49
+                            if arb_val > 2.74
                                 && current_opt.bid > 1.0
                                 && next_opt.bid > 1.0
                                 && current_opt.asz > 0.0
                                 && next_opt.asz > 0.0
                                 && calc_time_difference(date, next_date) == 1
                                 && calendar_spread_risk_free_profit(current_strike, arb_val) > 0.25
+                                && (current_strike - mean_val).abs() <= 500.0
                             {
                                 let avg_ask: f64 = ((current_opt.asz + next_opt.asz) / 2.0).round();
                                 let rank_value: f64 =
