@@ -114,7 +114,7 @@ pub(crate) fn get_discount_value() -> f64 {
     match get_dotenv_variable("DISCOUNT_VALUE") {
         Ok(val) => match val.parse::<f64>() {
             Ok(val) => {
-                if val >= 0.0 && val <= 0.15 {
+                if val >= -0.15 && val <= 0.15 {
                     val
                 } else {
                     println!("Not a valid Discount Value, setting to 0.0");
@@ -127,10 +127,10 @@ pub(crate) fn get_discount_value() -> f64 {
             }
         },
         Err(_) => {
-            let input: String = get_user_input("Enter a Discount Value between 0.0 and 0.15:");
+            let input: String = get_user_input("Enter a Discount Value between -0.15 and 0.15:");
             match input.parse::<f64>() {
                 Ok(val) => {
-                    if val >= 0.0 && val <= 0.15 {
+                    if val >= -0.15 && val <= 0.15 {
                         val
                     } else {
                         println!("Not a valid Discount Value, setting to 0.0");
