@@ -643,7 +643,7 @@ impl IBKR {
                             let arb_val: f64 =
                                 (current_p.mkt + right_c.mkt) - (current_c.mkt + right_p.mkt);
 
-                            if arb_val < -5.99
+                            if arb_val < -5.29
                                 && current_c.bid > 2.0
                                 && current_p.bid > 2.0
                                 && right_c.bid > 2.0
