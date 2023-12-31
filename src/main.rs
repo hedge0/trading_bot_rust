@@ -50,13 +50,17 @@ fn main() {
 
     loop {
         if !mode || is_us_stock_market_open(Utc::now()) {
-            match ibkr.get_portfolio_value() {
-                Ok(_) => {
-                    port_val = 100000.0;
-                }
-                Err(e) => {
-                    log_error(format!("{}", e));
-                    exit(1);
+            if !mode {
+                port_val = 100000.0;
+            } else {
+                match ibkr.get_portfolio_value() {
+                    Ok(port_value) => {
+                        port_val = port_value;
+                    }
+                    Err(e) => {
+                        log_error(format!("{}", e));
+                        exit(1);
+                    }
                 }
             }
 
