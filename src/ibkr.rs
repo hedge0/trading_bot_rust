@@ -45,6 +45,7 @@ impl OptionType {
 pub(crate) struct IBKR {
     discount_value: Option<f64>,
     arb_val: Option<f64>,
+    strike_dif_value: Option<f64>,
     base_url: Option<String>,
     live_orders: Option<Vec<String>>,
     client: Option<Client>,
@@ -61,6 +62,7 @@ impl IBKR {
         IBKR {
             discount_value: None,
             arb_val: None,
+            strike_dif_value: None,
             base_url: None,
             live_orders: None,
             client: None,
@@ -77,6 +79,7 @@ impl IBKR {
         &mut self,
         discount_value: f64,
         arb_val: f64,
+        strike_dif_value: f64,
         domain: String,
         port: String,
         num_days: i64,
@@ -87,6 +90,7 @@ impl IBKR {
 
         self.discount_value = Some(discount_value);
         self.arb_val = Some(arb_val);
+        self.strike_dif_value = Some(strike_dif_value);
         self.base_url = Some(format!("https://{}:{}", domain, port));
         self.live_orders = Some(Vec::new());
         self.client = Some(
@@ -442,7 +446,7 @@ impl IBKR {
                                 && next_opt.asz > 0.0
                                 && calc_time_difference(date, next_date) == 1
                                 && calendar_spread_risk_free_profit(current_strike, arb_val) > 0.25
-                                && (current_strike - mean_val).abs() <= 400.0
+                                && (current_strike - mean_val).abs() <= 500.0
                             {
                                 let avg_ask: f64 = ((current_opt.asz + next_opt.asz) / 2.0).round();
                                 let rank_value: f64 =
@@ -539,8 +543,10 @@ impl IBKR {
                                     && left_contract.asz > 0.0
                                     && right_contract.asz > 0.0
                                     && current_contract.asz > 0.0
-                                    && (current_strike - left_strike).round() == 5.0
-                                    && (right_strike - current_strike).round() == 5.0
+                                    && (current_strike - left_strike).round()
+                                        == self.strike_dif_value.unwrap()
+                                    && (right_strike - current_strike).round()
+                                        == self.strike_dif_value.unwrap()
                                 {
                                     let avg_ask: f64 = ((left_contract.asz
                                         + right_contract.asz
@@ -659,8 +665,10 @@ impl IBKR {
                                 && current_p.asz > 0.0
                                 && right_c.asz > 0.0
                                 && right_p.asz > 0.0
-                                && (right_strike_c - current_strike_c).round() == 5.0
-                                && (right_strike_p - current_strike_p).round() == 5.0
+                                && (right_strike_c - current_strike_c).round()
+                                    == self.strike_dif_value.unwrap()
+                                && (right_strike_p - current_strike_p).round()
+                                    == self.strike_dif_value.unwrap()
                             {
                                 let avg_ask: f64 =
                                     ((current_c.asz + right_c.asz + current_p.asz + right_p.asz)

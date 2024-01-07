@@ -58,7 +58,7 @@ DEFAULT for multiple orders, multiple fills
     }
 }
 
-// Function that gets discount value.
+// Function that gets arb value.
 pub(crate) fn get_arb_value() -> f64 {
     match get_dotenv_variable("ARB_VALUE") {
         Ok(val) => match val.parse::<f64>() {
@@ -78,6 +78,30 @@ pub(crate) fn get_arb_value() -> f64 {
         Err(_) => {
             println!("Arb Value not found, setting to 0.25");
             0.25
+        }
+    }
+}
+
+// Function that gets strike dif value.
+pub(crate) fn get_strike_dif_value() -> f64 {
+    match get_dotenv_variable("STRIKE_DIF_VALUE") {
+        Ok(val) => match val.parse::<f64>() {
+            Ok(val) => {
+                if val >= 0.0 {
+                    val
+                } else {
+                    println!("Not a valid Strike Dif Value, setting to 5.0");
+                    5.0
+                }
+            }
+            Err(_) => {
+                println!("Not a valid Strike Dif Value, setting to 5.0");
+                5.0
+            }
+        },
+        Err(_) => {
+            println!("Strike Dif Value not found, setting to 5.0");
+            5.0
         }
     }
 }
