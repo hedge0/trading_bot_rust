@@ -547,9 +547,9 @@ impl IBKR {
                                     && left_contract.asz > 0.0
                                     && right_contract.asz > 0.0
                                     && current_contract.asz > 0.0
-                                    && (current_strike - left_strike).round()
+                                    && ((current_strike - left_strike) * 10.0).round() / 10.0
                                         == self.strike_dif_value.unwrap()
-                                    && (right_strike - current_strike).round()
+                                    && ((right_strike - current_strike) * 10.0).round() / 10.0
                                         == self.strike_dif_value.unwrap()
                                 {
                                     let avg_ask: f64 = ((left_contract.asz
@@ -669,9 +669,9 @@ impl IBKR {
                                 && current_p.asz > 0.0
                                 && right_c.asz > 0.0
                                 && right_p.asz > 0.0
-                                && (right_strike_c - current_strike_c).round()
+                                && ((right_strike_c - current_strike_c) * 10.0).round() / 10.0
                                     == self.strike_dif_value.unwrap()
-                                && (right_strike_p - current_strike_p).round()
+                                && ((right_strike_p - current_strike_p) * 10.0).round() / 10.0
                                     == self.strike_dif_value.unwrap()
                             {
                                 let avg_ask: f64 =

@@ -71,21 +71,21 @@ pub(crate) fn get_arb_value() -> f64 {
     match get_dotenv_variable("ARB_VALUE") {
         Ok(val) => match val.parse::<f64>() {
             Ok(val) => {
-                if val >= 0.15 {
+                if val >= 0.10 {
                     val
                 } else {
-                    println!("Not a valid Arb Value, setting to 0.15");
-                    0.15
+                    println!("Not a valid Arb Value, setting to 0.10");
+                    0.10
                 }
             }
             Err(_) => {
-                println!("Not a valid Arb Value, setting to 0.15");
-                0.15
+                println!("Not a valid Arb Value, setting to 0.10");
+                0.10
             }
         },
         Err(_) => {
-            println!("Arb Value not found, setting to 0.15");
-            0.15
+            println!("Arb Value not found, setting to 0.10");
+            0.10
         }
     }
 }
