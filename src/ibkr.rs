@@ -44,6 +44,7 @@ impl OptionType {
 
 pub(crate) struct IBKR {
     discount_value: Option<f64>,
+    arb_val: Option<f64>,
     base_url: Option<String>,
     live_orders: Option<Vec<String>>,
     client: Option<Client>,
@@ -59,6 +60,7 @@ impl IBKR {
     pub(crate) fn new() -> Self {
         IBKR {
             discount_value: None,
+            arb_val: None,
             base_url: None,
             live_orders: None,
             client: None,
@@ -74,6 +76,7 @@ impl IBKR {
     pub(crate) fn init(
         &mut self,
         discount_value: f64,
+        arb_val: f64,
         domain: String,
         port: String,
         num_days: i64,
@@ -83,6 +86,7 @@ impl IBKR {
         let mut next_month: String = String::new();
 
         self.discount_value = Some(discount_value);
+        self.arb_val = Some(arb_val);
         self.base_url = Some(format!("https://{}:{}", domain, port));
         self.live_orders = Some(Vec::new());
         self.client = Some(
@@ -389,6 +393,7 @@ impl IBKR {
         strike_slice: &HashMap<String, HashMap<String, Vec<f64>>>,
         conids_map: &HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>,
     ) -> Result<Vec<Contender>, Box<dyn Error>> {
+        let arb_threshold: f64 = 0.0 + self.arb_val.as_ref().unwrap();
         let mut contender_contracts: Vec<Contender> = Vec::new();
         let now: chrono::DateTime<Local> = Local::now();
         let current_date: String =
@@ -430,7 +435,7 @@ impl IBKR {
 
                             let arb_val: f64 = current_opt.mkt - next_opt.mkt;
 
-                            if arb_val > 1.49
+                            if arb_val > arb_threshold
                                 && current_opt.bid > 1.0
                                 && next_opt.bid > 1.0
                                 && current_opt.asz > 0.0
@@ -482,6 +487,7 @@ impl IBKR {
         strike_slice: &HashMap<String, HashMap<String, Vec<f64>>>,
         conids_map: &HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>,
     ) -> Result<Vec<Contender>, Box<dyn Error>> {
+        let arb_threshold: f64 = 0.0 + self.arb_val.as_ref().unwrap();
         let mut contender_contracts: Vec<Contender> = Vec::new();
         let now: chrono::DateTime<Local> = Local::now();
         let current_date: String =
@@ -526,7 +532,7 @@ impl IBKR {
                                 let arb_val: f64 = (2.0 * current_contract.mkt)
                                     - (left_contract.mkt + right_contract.mkt);
 
-                                if arb_val > 0.29
+                                if arb_val > arb_threshold
                                     && left_contract.bid > 2.0
                                     && right_contract.bid > 2.0
                                     && current_contract.bid > 2.0
@@ -590,6 +596,7 @@ impl IBKR {
         strike_slice: &HashMap<String, HashMap<String, Vec<f64>>>,
         conids_map: &HashMap<String, HashMap<String, HashMap<OrderedFloat<f64>, String>>>,
     ) -> Result<Vec<Contender>, Box<dyn Error>> {
+        let arb_threshold: f64 = -5.0 - self.arb_val.as_ref().unwrap();
         let mut contender_contracts: Vec<Contender> = Vec::new();
         let now: chrono::DateTime<Local> = Local::now();
         let current_date: String =
@@ -643,7 +650,7 @@ impl IBKR {
                             let arb_val: f64 =
                                 (current_p.mkt + right_c.mkt) - (current_c.mkt + right_p.mkt);
 
-                            if arb_val < -5.29
+                            if arb_val < arb_threshold
                                 && current_c.bid > 2.0
                                 && current_p.bid > 2.0
                                 && right_c.bid > 2.0

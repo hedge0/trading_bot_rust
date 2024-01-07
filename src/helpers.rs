@@ -58,6 +58,30 @@ DEFAULT for multiple orders, multiple fills
     }
 }
 
+// Function that gets discount value.
+pub(crate) fn get_arb_value() -> f64 {
+    match get_dotenv_variable("ARB_VALUE") {
+        Ok(val) => match val.parse::<f64>() {
+            Ok(val) => {
+                if val >= 0.25 {
+                    val
+                } else {
+                    println!("Not a valid Arb Value, setting to 0.25");
+                    0.25
+                }
+            }
+            Err(_) => {
+                println!("Not a valid Arb Value, setting to 0.25");
+                0.25
+            }
+        },
+        Err(_) => {
+            println!("Arb Value not found, setting to 0.25");
+            0.25
+        }
+    }
+}
+
 // Function that gets mode.
 pub(crate) fn get_mode() -> bool {
     match get_dotenv_variable("TEST_MODE") {
