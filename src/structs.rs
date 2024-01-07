@@ -95,7 +95,7 @@ pub(crate) struct OrdersResponse {
     pub(crate) orders: Vec<Order>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub(crate) struct Opt {
     pub(crate) asz: f64,
     pub(crate) mkt: f64,
