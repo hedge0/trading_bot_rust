@@ -43,6 +43,7 @@ impl OptionType {
 }
 
 pub(crate) struct IBKR {
+    ticker: Option<String>,
     discount_value: Option<f64>,
     arb_val: Option<f64>,
     strike_dif_value: Option<f64>,
@@ -60,6 +61,7 @@ pub(crate) struct IBKR {
 impl IBKR {
     pub(crate) fn new() -> Self {
         IBKR {
+            ticker: None,
             discount_value: None,
             arb_val: None,
             strike_dif_value: None,
@@ -77,6 +79,7 @@ impl IBKR {
 
     pub(crate) fn init(
         &mut self,
+        ticker: String,
         discount_value: f64,
         arb_val: f64,
         strike_dif_value: f64,
@@ -88,6 +91,7 @@ impl IBKR {
         let mut current_month: String = String::new();
         let mut next_month: String = String::new();
 
+        self.ticker = Some(ticker);
         self.discount_value = Some(discount_value);
         self.arb_val = Some(arb_val);
         self.strike_dif_value = Some(strike_dif_value);
@@ -761,8 +765,9 @@ impl IBKR {
     // Function that sends a GET request for ticker ID.
     fn get_ticker_conid(&self) -> Result<(String, String, String), Box<dyn Error>> {
         let search_url: String = format!(
-            "{}/v1/api/iserver/secdef/search?symbol=SPX",
-            self.base_url.as_ref().unwrap()
+            "{}/v1/api/iserver/secdef/search?symbol={}",
+            self.base_url.as_ref().unwrap(),
+            self.ticker.as_ref().unwrap()
         );
 
         let response: Response = self
@@ -787,26 +792,25 @@ impl IBKR {
         let mut month1: String = String::new();
         let mut month2: String = String::new();
 
-        for result in &search_results {
-            if let Some(conid) = &result.conid {
-                if result.company_name == "S&P 500 Stock Index" && !conid.is_empty() {
-                    if let Some(sections) = &result.sections {
-                        for section in sections {
-                            if section.sec_type == "OPT" {
-                                if let Some(months) = &section.months {
-                                    let months_vec: Vec<&str> = months.split(';').collect();
-                                    if months_vec.len() >= 2 {
-                                        month1 = months_vec[0].to_string();
-                                        month2 = months_vec[1].to_string();
-                                    }
+        let result: &SecDefResponse = &search_results[0];
+        if let Some(conid) = &result.conid {
+            if !conid.is_empty() {
+                if let Some(sections) = &result.sections {
+                    for section in sections {
+                        if section.sec_type == "OPT" {
+                            if let Some(months) = &section.months {
+                                let months_vec: Vec<&str> = months.split(';').collect();
+                                if months_vec.len() >= 2 {
+                                    month1 = months_vec[0].to_string();
+                                    month2 = months_vec[1].to_string();
                                 }
-                                break;
                             }
+                            break;
                         }
                     }
-
-                    return Ok((conid.to_string(), month1, month2));
                 }
+
+                return Ok((conid.to_string(), month1, month2));
             }
         }
 
