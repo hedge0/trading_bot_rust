@@ -13,8 +13,9 @@ use std::{
 
 use chrono::Utc;
 use helpers::{
-    calc_final_num_orders, get_discount_value, get_dotenv_variable, get_fill_type, get_mode,
-    get_num_days, get_num_days_offset, get_option, get_seconds_to_sleep, is_us_stock_market_open,
+    calc_final_num_orders, get_arb_value, get_discount_value, get_dotenv_variable, get_fill_type,
+    get_mode, get_num_days, get_num_days_offset, get_option, get_seconds_to_sleep,
+    is_us_stock_market_open,
 };
 use ibkr::IBKR;
 use logging::{log_error, log_message};
@@ -33,6 +34,7 @@ fn main() {
 
     match ibkr.init(
         get_discount_value(),
+        get_arb_value(),
         match get_dotenv_variable("DOMAIN") {
             Ok(val) => val,
             Err(_) => "localhost".to_string(),
