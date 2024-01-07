@@ -50,7 +50,7 @@ pub(crate) struct IBKR {
     live_orders: Option<Vec<String>>,
     client: Option<Client>,
     account_id: Option<String>,
-    spx_id: Option<String>,
+    ticker_id: Option<String>,
     conids_strings: Option<Vec<String>>,
     dates_slice: Option<Vec<String>>,
     strike_slice: Option<HashMap<String, HashMap<String, Vec<f64>>>>,
@@ -67,7 +67,7 @@ impl IBKR {
             live_orders: None,
             client: None,
             account_id: None,
-            spx_id: None,
+            ticker_id: None,
             conids_strings: None,
             dates_slice: None,
             strike_slice: None,
@@ -105,13 +105,13 @@ impl IBKR {
             }
             Err(e) => log_error(format!("Failed to get account ID: {}", e)),
         }
-        match self.get_spx_conid() {
-            Ok((spx_id, month1, month2)) => {
-                self.spx_id = Some(spx_id);
+        match self.get_ticker_conid() {
+            Ok((ticker_id, month1, month2)) => {
+                self.ticker_id = Some(ticker_id);
                 current_month = month1;
                 next_month = month2;
             }
-            Err(e) => log_error(format!("Failed to get SPX ID: {}", e)),
+            Err(e) => log_error(format!("Failed to get ticker ID: {}", e)),
         }
 
         match self.get_conids_map(num_days, num_days_offset, current_month, next_month) {
@@ -127,7 +127,7 @@ impl IBKR {
             }
         }
 
-        self.init_spx_data()?;
+        self.init_ticker_data()?;
 
         Ok(())
     }
@@ -138,7 +138,7 @@ impl IBKR {
         option: &str,
         num_orders: i32,
     ) -> Result<Vec<Contender>, Box<dyn Error>> {
-        let contracts_map: HashMap<String, Opt> = self.get_spx_data()?;
+        let contracts_map: HashMap<String, Opt> = self.get_ticker_data()?;
         let mut contender_contracts_total: Vec<Contender> = Vec::new();
 
         let dates_slice: &Vec<String> =
@@ -207,8 +207,8 @@ impl IBKR {
         Ok(contender_contracts_total)
     }
 
-    // Function that sends a GET request for SPX data, and then parses the response.
-    fn get_spx_data(&self) -> Result<HashMap<String, Opt>, Box<dyn Error>> {
+    // Function that sends a GET request for ticker data, and then parses the response.
+    fn get_ticker_data(&self) -> Result<HashMap<String, Opt>, Box<dyn Error>> {
         let mut contracts_map: HashMap<String, Opt> = HashMap::new();
         let chain_url: String = format!(
             "{}/v1/api/iserver/marketdata/snapshot",
@@ -256,7 +256,7 @@ impl IBKR {
                             ));
                         }
                     }
-                    Err(e) => log_error(format!("Failed to get SPX data: {}", e)),
+                    Err(e) => log_error(format!("Failed to get ticker data: {}", e)),
                 }
             });
 
@@ -354,8 +354,8 @@ impl IBKR {
         return Ok(contracts_map);
     }
 
-    // Function that sends a GET request for SPX data in order to init the response.
-    fn init_spx_data(&self) -> Result<(), Box<dyn std::error::Error>> {
+    // Function that sends a GET request for ticker data in order to init the response.
+    fn init_ticker_data(&self) -> Result<(), Box<dyn std::error::Error>> {
         let chain_url: String = format!(
             "{}/v1/api/iserver/marketdata/snapshot",
             self.base_url.as_ref().unwrap()
@@ -537,9 +537,9 @@ impl IBKR {
                                     - (left_contract.mkt + right_contract.mkt);
 
                                 if arb_val > arb_threshold
-                                    && left_contract.bid > 2.0
-                                    && right_contract.bid > 2.0
-                                    && current_contract.bid > 2.0
+                                    && left_contract.bid > 1.0
+                                    && right_contract.bid > 1.0
+                                    && current_contract.bid > 1.0
                                     && left_contract.asz > 0.0
                                     && right_contract.asz > 0.0
                                     && current_contract.asz > 0.0
@@ -657,10 +657,10 @@ impl IBKR {
                                 (current_p.mkt + right_c.mkt) - (current_c.mkt + right_p.mkt);
 
                             if arb_val < arb_threshold
-                                && current_c.bid > 2.0
-                                && current_p.bid > 2.0
-                                && right_c.bid > 2.0
-                                && right_p.bid > 2.0
+                                && current_c.bid > 1.0
+                                && current_p.bid > 1.0
+                                && right_c.bid > 1.0
+                                && right_p.bid > 1.0
                                 && current_c.asz > 0.0
                                 && current_p.asz > 0.0
                                 && right_c.asz > 0.0
@@ -758,8 +758,8 @@ impl IBKR {
         }
     }
 
-    // Function that sends a GET request for SPX ID.
-    fn get_spx_conid(&self) -> Result<(String, String, String), Box<dyn Error>> {
+    // Function that sends a GET request for ticker ID.
+    fn get_ticker_conid(&self) -> Result<(String, String, String), Box<dyn Error>> {
         let search_url: String = format!(
             "{}/v1/api/iserver/secdef/search?symbol=SPX",
             self.base_url.as_ref().unwrap()
@@ -810,7 +810,7 @@ impl IBKR {
             }
         }
 
-        log_error(format!("No SPX conid found in the response"));
+        log_error(format!("No ticker conid found in the response"));
         exit(1);
     }
 
@@ -839,7 +839,7 @@ impl IBKR {
         let search_url: String = format!(
             "{}/v1/api/iserver/secdef/info?conid={}&sectype=OPT&month={}&exchange=SMART&strike=0",
             self.base_url.as_ref().unwrap(),
-            self.spx_id.as_ref().unwrap(),
+            self.ticker_id.as_ref().unwrap(),
             current_month
         );
 
@@ -936,7 +936,7 @@ impl IBKR {
             let search_url_2: String = format!(
                 "{}/v1/api/iserver/secdef/info?conid={}&sectype=OPT&month={}&exchange=SMART&strike=0",
                 self.base_url.as_ref().unwrap(),
-                self.spx_id.as_ref().unwrap(),
+                self.ticker_id.as_ref().unwrap(),
                 next_month
             );
 
