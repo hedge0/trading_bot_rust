@@ -15,7 +15,7 @@ use chrono::Utc;
 use helpers::{
     calc_final_num_orders, get_arb_value, get_discount_value, get_dotenv_variable, get_fill_type,
     get_mode, get_num_days, get_num_days_offset, get_option, get_seconds_to_sleep,
-    get_strike_dif_value, is_us_stock_market_open,
+    get_strike_dif_value, get_ticker, is_us_stock_market_open,
 };
 use ibkr::IBKR;
 use logging::{log_error, log_message};
@@ -27,12 +27,14 @@ fn main() {
     let mut port_val: f64;
     let mut ibkr: IBKR = IBKR::new();
 
+    let ticker: String = get_ticker();
     let option: String = get_option();
     let fill: String = get_fill_type();
     let mode: bool = get_mode();
     let seconds_to_sleep: u64 = get_seconds_to_sleep();
 
     match ibkr.init(
+        ticker,
         get_discount_value(),
         get_arb_value(),
         get_strike_dif_value(),

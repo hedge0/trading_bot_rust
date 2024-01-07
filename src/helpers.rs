@@ -58,6 +58,14 @@ DEFAULT for multiple orders, multiple fills
     }
 }
 
+// Function that gets ticker.
+pub(crate) fn get_ticker() -> String {
+    match get_dotenv_variable("TICKER") {
+        Ok(val) => val,
+        Err(_) => get_user_input("Enter which ticker the bot should use:"),
+    }
+}
+
 // Function that gets arb value.
 pub(crate) fn get_arb_value() -> f64 {
     match get_dotenv_variable("ARB_VALUE") {
