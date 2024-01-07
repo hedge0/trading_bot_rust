@@ -443,7 +443,7 @@ impl IBKR {
 
                             let arb_val: f64 = current_opt.mkt - next_opt.mkt;
 
-                            if arb_val > arb_threshold
+                            if arb_val >= arb_threshold
                                 && current_opt.bid > 1.0
                                 && next_opt.bid > 1.0
                                 && current_opt.asz > 0.0
@@ -540,7 +540,7 @@ impl IBKR {
                                 let arb_val: f64 = (2.0 * current_contract.mkt)
                                     - (left_contract.mkt + right_contract.mkt);
 
-                                if arb_val > arb_threshold
+                                if arb_val >= arb_threshold
                                     && left_contract.bid > 1.0
                                     && right_contract.bid > 1.0
                                     && current_contract.bid > 1.0
@@ -660,7 +660,7 @@ impl IBKR {
                             let arb_val: f64 =
                                 (current_p.mkt + right_c.mkt) - (current_c.mkt + right_p.mkt);
 
-                            if arb_val < arb_threshold
+                            if arb_val <= arb_threshold
                                 && current_c.bid > 1.0
                                 && current_p.bid > 1.0
                                 && right_c.bid > 1.0
