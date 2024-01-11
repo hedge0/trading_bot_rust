@@ -351,3 +351,15 @@ pub(crate) fn calendar_spread_risk_free_profit(strike: &f64, arb_val: f64) -> f6
     let max_loss: f64 = (strike / 200.0) * 0.03;
     arb_val - max_loss
 }
+
+// Function to format the strike price and trim trailing zeros.
+pub(crate) fn format_strike(price: f64) -> String {
+    let mut formatted = format!("{:.2}", price);
+    while formatted.ends_with('0') {
+        formatted.pop();
+    }
+    if formatted.ends_with('.') {
+        formatted.pop();
+    }
+    formatted
+}

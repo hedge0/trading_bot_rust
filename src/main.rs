@@ -13,8 +13,8 @@ use std::{
 
 use chrono::Utc;
 use helpers::{
-    calc_final_num_orders, get_arb_value, get_discount_value, get_dotenv_variable, get_fill_type,
-    get_mode, get_num_days, get_num_days_offset, get_option, get_seconds_to_sleep,
+    calc_final_num_orders, format_strike, get_arb_value, get_discount_value, get_dotenv_variable,
+    get_fill_type, get_mode, get_num_days, get_num_days_offset, get_option, get_seconds_to_sleep,
     get_strike_dif_value, get_ticker, is_us_stock_market_open,
 };
 use ibkr::IBKR;
@@ -98,11 +98,11 @@ fn main() {
 
                                 for i in 0..contender.contracts.len() {
                                     log_message(format!(
-                                        "\tLeg {}: {} {} * {:.2}{} {} @ {:.2}",
+                                        "\tLeg {}: {} {} * {}{} {} @ {:.2}",
                                         i + 1,
                                         contender.action(i),
                                         contender.multiplier(num_fills, i),
-                                        contender.contracts[i].strike,
+                                        format_strike(contender.contracts[i].strike),
                                         contender.contracts[i].type_contract,
                                         contender.contracts[i].date,
                                         contender.contracts[i].mkt_price
