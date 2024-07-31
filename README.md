@@ -56,6 +56,23 @@ The bot supports the following trading strategies:
 - **Butterfly Spread**
 - **Boxspread**
 
+## Running Tests
+
+To run the tests for the library, use the following command:
+
+\```bash
+cargo test
+\```
+
+The test file includes various test cases for functions such as:
+
+- `test_get_dotenv_variable`
+- `test_calc_final_num_orders`
+- `test_calc_time_difference`
+- `test_calc_rank_value`
+
+These tests ensure the correctness of the functions used in the bot.
+
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request for any changes or improvements.
