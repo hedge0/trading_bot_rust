@@ -1,6 +1,6 @@
 # Trading Bot in Rust
 
-A trading bot implemented in Rust, designed to automate trading strategies using various options strategies such as Calendar, Butterfly, and Boxspread. This bot interacts with Interactive Brokers to execute trades based on defined conditions and strategies.
+A trading bot implemented in Rust, designed to automate arbitrage strategies using various option spreads such as Calendar, Butterfly, and Boxspread. This bot interacts with Interactive Brokers to execute trades based on defined conditions and strategies.
 
 ## Prerequisites
 
