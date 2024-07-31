@@ -60,9 +60,9 @@ The bot supports the following trading strategies:
 
 To run the tests for the library, use the following command:
 
-\```bash
+```bash
 cargo test
-\```
+```
 
 The test file includes various test cases for functions such as:
 
