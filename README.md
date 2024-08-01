@@ -1,6 +1,6 @@
 # Trading Bot in Rust
 
-A high-performance trading bot implemented in Rust, designed to automate arbitrage strategies using various option spreads such as Calendar, Butterfly, and Boxspread. This bot interacts with the Interactive Brokers Web API to execute trades and pull live market data. For optimal performance, it's best to host the bot as close to IBKR's data centers as possible. In my case, I used an AWS EC2 instance with a New Jersey subnet and was able to identify all potential trades in approximately 100 ms.
+A high-performance trading bot implemented in Rust, designed to automate arbitrage strategies using various option spreads such as Calendar, Butterfly, and Boxspread. This bot interacts with the Interactive Brokers Web API to execute trades and pull live market data. For optimal performance, it's best to host the bot as close to IBKR's data centers as possible. I used an AWS EC2 instance with a New Jersey subnet and was able to identify all potential trades in approximately 100 ms.
 
 ## Prerequisites
 
