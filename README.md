@@ -1,4 +1,4 @@
-# Trading Bot in Rust
+# Options Arbitrage Trading Bot in Rust
 
 ## Overview
 
