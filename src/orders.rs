@@ -1,10 +1,20 @@
+use crate::structs::{Contender, OrderBody, RequestDataStruct};
+use ordered_float::OrderedFloat;
 use std::collections::HashMap;
 
-use ordered_float::OrderedFloat;
-
-use crate::structs::{Contender, OrderBody, RequestDataStruct};
-
-// Function that builds calendar order body.
+/// Builds the order body for a calendar spread.
+///
+/// # Arguments
+///
+/// * `contract` - A reference to a `Contender` that represents the contract.
+/// * `num_fills` - The number of fills required for the order.
+/// * `account_id` - An `Option<String>` containing the account ID.
+/// * `conids_map` - A reference to an optional mapping of conids.
+/// * `discount_value` - An optional discount value applied to the order.
+///
+/// # Returns
+///
+/// An `OrderBody` representing the order for the calendar spread.
 pub(crate) fn build_calendar_order(
     contract: &Contender,
     num_fills: i32,
@@ -37,7 +47,19 @@ pub(crate) fn build_calendar_order(
     }
 }
 
-// Function that builds butterfly bull order body.
+/// Builds the order body for a butterfly bull spread.
+///
+/// # Arguments
+///
+/// * `contract` - A reference to a `Contender` that represents the contract.
+/// * `num_fills` - The number of fills required for the order.
+/// * `account_id` - An `Option<String>` containing the account ID.
+/// * `conids_map` - A reference to an optional mapping of conids.
+/// * `discount_value` - An optional discount value applied to the order.
+///
+/// # Returns
+///
+/// An `OrderBody` representing the order for the butterfly bull spread.
 pub(crate) fn build_butterfly_bull_order(
     contract: &Contender,
     num_fills: i32,
@@ -70,7 +92,19 @@ pub(crate) fn build_butterfly_bull_order(
     }
 }
 
-// Function that builds butterfly bear order body.
+/// Builds the order body for a butterfly bear spread.
+///
+/// # Arguments
+///
+/// * `contract` - A reference to a `Contender` that represents the contract.
+/// * `num_fills` - The number of fills required for the order.
+/// * `account_id` - An `Option<String>` containing the account ID.
+/// * `conids_map` - A reference to an optional mapping of conids.
+/// * `discount_value` - An optional discount value applied to the order.
+///
+/// # Returns
+///
+/// An `OrderBody` representing the order for the butterfly bear spread.
 pub(crate) fn build_butterfly_bear_order(
     contract: &Contender,
     num_fills: i32,
@@ -103,7 +137,19 @@ pub(crate) fn build_butterfly_bear_order(
     }
 }
 
-// Function that builds boxspread put order body.
+/// Builds the order body for a boxspread put spread.
+///
+/// # Arguments
+///
+/// * `contract` - A reference to a `Contender` that represents the contract.
+/// * `num_fills` - The number of fills required for the order.
+/// * `account_id` - An `Option<String>` containing the account ID.
+/// * `conids_map` - A reference to an optional mapping of conids.
+/// * `discount_value` - An optional discount value applied to the order.
+///
+/// # Returns
+///
+/// An `OrderBody` representing the order for the boxspread put spread.
 pub(crate) fn build_boxspread_put_order(
     contract: &Contender,
     num_fills: i32,
@@ -116,10 +162,10 @@ pub(crate) fn build_boxspread_put_order(
         acct_id: account_id.clone().unwrap(),
         con_idex: format!(
             "28812380;;;{}/-1,{}/1",
-            conids_map.as_ref().unwrap()[contract.contracts[3].date.as_str()] // Short right dated Put.
+            conids_map.as_ref().unwrap()[contract.contracts[3].date.as_str()]
                 [contract.contracts[3].type_contract.as_str()]
                 [(&contract.contracts[3].strike).into()],
-            conids_map.as_ref().unwrap()[contract.contracts[0].date.as_str()] // Long current dated Put.
+            conids_map.as_ref().unwrap()[contract.contracts[0].date.as_str()]
                 [contract.contracts[0].type_contract.as_str()]
                 [(&contract.contracts[0].strike).into()]
         ),
@@ -136,7 +182,19 @@ pub(crate) fn build_boxspread_put_order(
     }
 }
 
-// Function that builds boxspread call order body.
+/// Builds the order body for a boxspread call spread.
+///
+/// # Arguments
+///
+/// * `contract` - A reference to a `Contender` that represents the contract.
+/// * `num_fills` - The number of fills required for the order.
+/// * `account_id` - An `Option<String>` containing the account ID.
+/// * `conids_map` - A reference to an optional mapping of conids.
+/// * `discount_value` - An optional discount value applied to the order.
+///
+/// # Returns
+///
+/// An `OrderBody` representing the order for the boxspread call spread.
 pub(crate) fn build_boxspread_call_order(
     contract: &Contender,
     num_fills: i32,
@@ -149,10 +207,10 @@ pub(crate) fn build_boxspread_call_order(
         acct_id: account_id.clone().unwrap(),
         con_idex: format!(
             "28812380;;;{}/1,{}/-1",
-            conids_map.as_ref().unwrap()[contract.contracts[2].date.as_str()] // Long right dated Call.
+            conids_map.as_ref().unwrap()[contract.contracts[2].date.as_str()]
                 [contract.contracts[2].type_contract.as_str()]
                 [(&contract.contracts[2].strike).into()],
-            conids_map.as_ref().unwrap()[contract.contracts[1].date.as_str()] // Short current dated Call.
+            conids_map.as_ref().unwrap()[contract.contracts[1].date.as_str()]
                 [contract.contracts[1].type_contract.as_str()]
                 [(&contract.contracts[1].strike).into()]
         ),
@@ -169,7 +227,19 @@ pub(crate) fn build_boxspread_call_order(
     }
 }
 
-// Function that builds request data for json body to submit an order.
+/// Builds the request data structure that includes the orders for each contender contract.
+///
+/// # Arguments
+///
+/// * `contender_contracts` - A vector of `Contender` contracts.
+/// * `num_fills` - The number of fills for each order.
+/// * `account_id` - An `Option<String>` containing the account ID.
+/// * `conids_map` - A reference to an optional mapping of conids.
+/// * `discount_value` - An optional discount value applied to the orders.
+///
+/// # Returns
+///
+/// A `RequestDataStruct` containing the order bodies for each contender contract.
 pub(crate) fn build_request_data(
     contender_contracts: &Vec<Contender>,
     num_fills: i32,

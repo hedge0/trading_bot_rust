@@ -24,6 +24,7 @@ use crate::{
     },
 };
 
+/// Enum representing option types for different strategies.
 enum OptionType {
     Calendar,
     Butterfly,
@@ -32,6 +33,15 @@ enum OptionType {
 }
 
 impl OptionType {
+    /// Converts a string to an `OptionType`.
+    ///
+    /// # Arguments
+    ///
+    /// * `s` - A string representing the option type.
+    ///
+    /// # Returns
+    ///
+    /// An `Option<Self>` representing the converted option type.
     fn from_str(s: &str) -> Option<Self> {
         match s {
             "1" => Some(OptionType::Calendar),
@@ -42,6 +52,7 @@ impl OptionType {
     }
 }
 
+/// Struct representing the IBKR client, including configuration and internal state.
 pub(crate) struct IBKR {
     ticker: Option<String>,
     discount_value: Option<f64>,
@@ -59,6 +70,11 @@ pub(crate) struct IBKR {
 }
 
 impl IBKR {
+    /// Creates a new `IBKR` instance.
+    ///
+    /// # Returns
+    ///
+    /// A new `IBKR` struct with uninitialized fields.
     pub(crate) fn new() -> Self {
         IBKR {
             ticker: None,
@@ -77,6 +93,22 @@ impl IBKR {
         }
     }
 
+    /// Initializes the IBKR client with necessary configurations and retrieves required data.
+    ///
+    /// # Arguments
+    ///
+    /// * `ticker` - The stock ticker to trade.
+    /// * `discount_value` - The discount value applied to orders.
+    /// * `arb_val` - Arbitrage value threshold.
+    /// * `strike_dif_value` - Difference in strike price for specific strategies.
+    /// * `domain` - The domain for IBKR API.
+    /// * `port` - The port for IBKR API.
+    /// * `num_days` - Number of days to consider for option expiry.
+    /// * `num_days_offset` - Number of days to offset from current day.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` indicating whether the initialization succeeded or failed.
     pub(crate) fn init(
         &mut self,
         ticker: String,
@@ -136,7 +168,16 @@ impl IBKR {
         Ok(())
     }
 
-    // Function that returns a slice of the top arbs given the number of orders.
+    /// Retrieves contender contracts based on the specified option type.
+    ///
+    /// # Arguments
+    ///
+    /// * `option` - The type of option strategy.
+    /// * `num_orders` - The number of contender contracts to retrieve.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a vector of contender contracts or an error.
     pub(crate) fn get_contender_contracts(
         &self,
         option: &str,
@@ -211,7 +252,11 @@ impl IBKR {
         Ok(contender_contracts_total)
     }
 
-    // Function that sends a GET request for ticker data, and then parses the response.
+    /// Retrieves ticker data from the IBKR API and parses it into a map of options.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a map of options or an error.
     fn get_ticker_data(&self) -> Result<HashMap<String, Opt>, Box<dyn Error>> {
         let mut contracts_map: HashMap<String, Opt> = HashMap::new();
         let chain_url: String = format!(
@@ -358,7 +403,11 @@ impl IBKR {
         return Ok(contracts_map);
     }
 
-    // Function that sends a GET request for ticker data in order to init the response.
+    /// Initializes ticker data by sending a request to the IBKR API.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` indicating whether the initialization succeeded or failed.
     fn init_ticker_data(&self) -> Result<(), Box<dyn std::error::Error>> {
         let chain_url: String = format!(
             "{}/v1/api/iserver/marketdata/snapshot",
@@ -393,7 +442,18 @@ impl IBKR {
         Ok(())
     }
 
-    // Function that returns a slice of the top calendar arbs.
+    /// Retrieves contender contracts for calendar spreads.
+    ///
+    /// # Arguments
+    ///
+    /// * `contracts_map` - A map of options.
+    /// * `dates_slice` - A slice of relevant dates for the options.
+    /// * `strike_slice` - A map of strike prices.
+    /// * `conids_map` - A map of conids for the contracts.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a vector of calendar contenders or an error.
     pub(crate) fn get_calendar_contenders(
         &self,
         contracts_map: &HashMap<String, Opt>,
@@ -487,7 +547,18 @@ impl IBKR {
         Ok(contender_contracts)
     }
 
-    // Function that returns a slice of the top butterfly arbs.
+    /// Retrieves contender contracts for butterfly spreads.
+    ///
+    /// # Arguments
+    ///
+    /// * `contracts_map` - A map of options.
+    /// * `dates_slice` - A slice of relevant dates for the options.
+    /// * `strike_slice` - A map of strike prices.
+    /// * `conids_map` - A map of conids for the contracts.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a vector of butterfly contenders or an error.
     pub(crate) fn get_butterfly_contenders(
         &self,
         contracts_map: &HashMap<String, Opt>,
@@ -598,7 +669,18 @@ impl IBKR {
         Ok(contender_contracts)
     }
 
-    // Function that returns a slice of the top boxspread arbs.
+    /// Retrieves contender contracts for box spread strategies.
+    ///
+    /// # Arguments
+    ///
+    /// * `contracts_map` - A map of options.
+    /// * `dates_slice` - A slice of relevant dates for the options.
+    /// * `strike_slice` - A map of strike prices.
+    /// * `conids_map` - A map of conids for the contracts.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a vector of box spread contenders or an error.
     pub(crate) fn get_boxspread_contenders(
         &self,
         contracts_map: &HashMap<String, Opt>,
@@ -728,7 +810,11 @@ impl IBKR {
         Ok(contender_contracts)
     }
 
-    // Function that sends a GET request for portfolio ID.
+    /// Retrieves the account ID from the IBKR API.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the account ID or an error.
     fn get_account_id(&self) -> Result<String, Box<dyn Error>> {
         let search_url: String = format!(
             "{}/v1/api/portfolio/accounts",
@@ -762,7 +848,11 @@ impl IBKR {
         }
     }
 
-    // Function that sends a GET request for ticker ID.
+    /// Retrieves the ticker conid and relevant months for the options.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the ticker conid, current month, and next month or an error.
     fn get_ticker_conid(&self) -> Result<(String, String, String), Box<dyn Error>> {
         let search_url: String = format!(
             "{}/v1/api/iserver/secdef/search?symbol={}",
@@ -818,7 +908,18 @@ impl IBKR {
         exit(1);
     }
 
-    // Function that gets a list of conids for all relevant contracts.
+    /// Retrieves the conid map for the options contracts.
+    ///
+    /// # Arguments
+    ///
+    /// * `num_days` - The number of days for which to retrieve conids.
+    /// * `num_days_offset` - The offset for the number of days.
+    /// * `current_month` - The current month for the options.
+    /// * `next_month` - The next month for the options.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing conids, dates, strike prices, and conid maps or an error.
     fn get_conids_map(
         &self,
         mut num_days: i64,
@@ -1047,7 +1148,11 @@ impl IBKR {
         Ok((conids_strings, dates_slice, strike_slice, conids_map))
     }
 
-    // Function that sends a GET request for portfolio value.
+    /// Retrieves the portfolio value from the IBKR API.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the portfolio value or an error.
     pub(crate) fn get_portfolio_value(&self) -> Result<f64, Box<dyn Error>> {
         let search_url: String = format!(
             "{}/v1/api/portfolio/{}/summary",
@@ -1077,7 +1182,15 @@ impl IBKR {
         Ok(search_results.equity_with_loan_value.amount)
     }
 
-    // Function that cancels all submitted and presubmitted orders.
+    /// Cancels all pending limit orders for the account.
+    ///
+    /// This method iterates over all live orders stored in the `live_orders` field
+    /// and calls the `cancel_order` method for each order. Once all orders are canceled,
+    /// it clears the `live_orders` list and logs a success message.
+    ///
+    /// # Returns
+    ///
+    /// No return value, but logs messages indicating the result of each cancellation.
     pub(crate) fn cancel_pending_orders(&mut self) {
         log_message(format!("Cancelling all pending limit orders."));
 
@@ -1099,7 +1212,15 @@ impl IBKR {
         log_message(format!("All pending limit orders cancelled."));
     }
 
-    // Function that cancels a single order.
+    /// Cancels a specific order by order ID.
+    ///
+    /// # Arguments
+    ///
+    /// * `order_id` - The ID of the order to be canceled.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a message about the cancellation or an error.
     fn cancel_order(&self, order_id: &str) -> Result<String, Box<dyn Error>> {
         let cancel_order_url: String = format!(
             "{}/v1/api/iserver/account/{}/order/{}",
@@ -1131,7 +1252,16 @@ impl IBKR {
         }
     }
 
-    // Function that makes orders all contender contracts.
+    /// Places orders for the contender contracts.
+    ///
+    /// # Arguments
+    ///
+    /// * `contender_contracts` - A vector of contender contracts to be ordered.
+    /// * `num_fills` - The number of fills for each contract.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` indicating whether the orders were successfully placed or not.
     pub(crate) fn order_contender_contracts(
         &mut self,
         contender_contracts: &Vec<Contender>,
@@ -1151,10 +1281,8 @@ impl IBKR {
             self.discount_value,
         );
 
-        // Serialize the request data to JSON, handle possible serialization error.
         let json_data: Vec<u8> = serde_json::to_vec(&request_data)?;
 
-        // Make the post request with the serialized JSON data.
         let response: Response = self
             .client
             .as_ref()

@@ -20,6 +20,30 @@ use helpers::{
 use ibkr::IBKR;
 use logging::{log_error, log_message};
 
+/// Entry point of the bot application.
+///
+/// This function initializes the bot, connects to the IBKR system, and enters a loop where it checks
+/// if the market is open, calculates the number of orders and fills, retrieves contender contracts,
+/// and submits orders based on the current market conditions.
+///
+/// The loop continues to run, sleeping for a specified duration between each iteration, until the
+/// market is closed or there are no trades to make.
+///
+/// # Workflow:
+///
+/// 1. Initializes the log file.
+/// 2. Retrieves necessary data (ticker, options, fill type, etc.) from environment variables or user input.
+/// 3. Initializes the IBKR connection.
+/// 4. Enters a loop that performs market checks, calculates orders, submits trades, and logs results.
+/// 5. Handles errors and logs them appropriately.
+///
+/// # Example
+///
+/// ```
+/// fn main() {
+///     main();
+/// }
+/// ```
 fn main() {
     let _ = File::create("log.txt");
     let mut num_orders: i32;
