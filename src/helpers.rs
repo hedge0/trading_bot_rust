@@ -449,14 +449,12 @@ pub(crate) fn is_us_stock_market_open(current_time: chrono::DateTime<Utc>) -> bo
     if ny_time.weekday() == Weekday::Sat || ny_time.weekday() == Weekday::Sun {
         return false;
     }
-    let market_open = New_York
-        .with_ymd_and_hms(ny_time.year(), ny_time.month(), ny_time.day(), 9, 30, 0)
-        .single()
-        .unwrap_or_else(|| return false);
-    let market_close = New_York
-        .with_ymd_and_hms(ny_time.year(), ny_time.month(), ny_time.day(), 15, 30, 0)
-        .single()
-        .unwrap_or_else(|| return false);
+    let Some(market_open) = New_York
+    .with_ymd_and_hms(ny_time.year(), ny_time.month(), ny_time.day(), 9, 30, 0)
+    .single() else { return false };
+    let Some(market_close) = New_York
+    .with_ymd_and_hms(ny_time.year(), ny_time.month(), ny_time.day(), 15, 30, 0)
+    .single() else { return false };
     ny_time >= market_open && ny_time <= market_close
 }
 
